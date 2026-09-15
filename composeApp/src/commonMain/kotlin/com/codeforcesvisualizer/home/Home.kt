@@ -8,12 +8,17 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.consumeWindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Icon
+import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -40,6 +45,7 @@ import com.codeforcesvisualizer.core.EventLogger
 import com.codeforcesvisualizer.core.reminders.ContestReminders
 import com.codeforcesvisualizer.core.theme.CFTheme
 import com.codeforcesvisualizer.core.theme.CFThemeColors
+import com.codeforcesvisualizer.core.theme.SystemBarsAppearance
 import com.codeforcesvisualizer.navigation.AppNavigator
 import com.codeforcesvisualizer.navigation.Screen
 import com.codeforcesvisualizer.preference.ThemeManager
@@ -81,27 +87,32 @@ private fun Home(
         contestReminders.keepScheduled()
     }
 
+    SystemBarsAppearance(themeMode = themeModeUiState.themeMode, isDarkTheme = isDarkTheme)
+
     CFTheme(
         isDarkTheme = isDarkTheme
     ) {
         val colors = CFThemeColors.current
 
-        Box(
-            modifier = modifier
-                .fillMaxSize()
-                .background(colors.bg)
-        ) {
+        Scaffold(
+            modifier = modifier.fillMaxSize(),
+            containerColor = colors.bg,
+            bottomBar = {
+                FloatingBottomNav(
+                    navController = navController,
+                    isDarkTheme = isDarkTheme
+                )
+            }
+        ) { innerPadding ->
+            // Screens get the space between the status bar and the bottom bar; consuming the
+            // insets stops nested Scaffolds and app bars from adding the status bar again.
             AppNavigator(
                 modifier = Modifier
                     .fillMaxSize()
-                    .padding(bottom = 80.dp),
+                    .padding(innerPadding)
+                    .consumeWindowInsets(innerPadding),
                 navController = navController,
                 themeManager = themeManager
-            )
-            FloatingBottomNav(
-                navController = navController,
-                isDarkTheme = isDarkTheme,
-                modifier = Modifier.align(Alignment.BottomCenter)
             )
         }
     }
@@ -135,7 +146,8 @@ fun FloatingBottomNav(
 
     Box(
         modifier = modifier
-            .padding(start = 8.dp, end = 8.dp, bottom = 38.dp)
+            .windowInsetsPadding(WindowInsets.navigationBars)
+            .padding(start = 8.dp, end = 8.dp, bottom = 8.dp)
             .fillMaxWidth()
             .shadow(elevation = shadowElevation, shape = navBarShape)
             .clip(navBarShape)

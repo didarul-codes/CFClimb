@@ -9,10 +9,12 @@ import android.content.Intent
 import androidx.test.core.app.ApplicationProvider
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertTrue
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.robolectric.Shadows.shadowOf
 import org.robolectric.annotation.Config
+import org.robolectric.shadows.ShadowAlarmManager
 
 // SDK 34 keeps Robolectric on Java 17+; SDK 35 and up need Java 21.
 @RunWith(AndroidJUnit4::class)
@@ -25,11 +27,40 @@ class AndroidRemindersTest {
     private val notifications get() = shadowOf(context.getSystemService(NotificationManager::class.java)).allNotifications
 
     @Test
-    fun schedulesOneAlarmPerReminder() {
+    fun withExactAccessAlarmsFireAtTheReminderTimeEvenWhenIdle() {
+        ShadowAlarmManager.setCanScheduleExactAlarms(true)
+
         scheduler.replace(5, reminders(5, ReminderLeadTime.OneHour, ReminderLeadTime.TenMinutes))
 
         assertEquals(2, alarms.size)
         assertEquals(TRIGGER_AT * 1000, alarms.minOf { it.triggerAtMs })
+        assertTrue(alarms.all { it.isAllowWhileIdle })
+    }
+
+    @Test
+    fun withoutExactAccessTheDeliveryWindowEndsAtTheReminderTime() {
+        ShadowAlarmManager.setCanScheduleExactAlarms(false)
+
+        scheduler.replace(5, reminders(5, ReminderLeadTime.TenMinutes))
+
+        val alarm = alarms.single()
+        assertEquals(FALLBACK_WINDOW_MILLIS, alarm.windowLengthMs)
+        assertEquals(TRIGGER_AT * 1000, alarm.triggerAtMs + alarm.windowLengthMs)
+    }
+
+    @Test
+    fun reminderArrivingAfterTheStartIsDropped() {
+        shadowOf(context as Application).grantPermissions(Manifest.permission.POST_NOTIFICATIONS)
+
+        ContestReminderReceiver().onReceive(
+            context,
+            Intent(ACTION_CONTEST_REMINDER)
+                .putExtra(EXTRA_CONTEST_ID, 5)
+                .putExtra(EXTRA_CONTEST_NAME, "Codeforces Round (Div. 2)")
+                .putExtra(EXTRA_START_TIME, System.currentTimeMillis() / 1000 - 60)
+        )
+
+        assertEquals(0, notifications.size)
     }
 
     @Test

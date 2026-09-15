@@ -166,5 +166,35 @@ fun ReminderSettingsCard(modifier: Modifier = Modifier) {
                 modifier = Modifier.padding(top = 2.dp),
             )
         }
+
+        val exactAccess = rememberExactReminderAccess()
+        if (exactAccess != null) {
+            HeightSpacer(height = 12.dp)
+            if (exactAccess.allowed) {
+                Text(
+                    text = "Exact timing is on.",
+                    style = TextStyle(
+                        fontFamily = FontFamily.Monospace,
+                        fontSize = 10.sp,
+                        color = colors.dim,
+                    ),
+                )
+            } else {
+                Chip(
+                    text = "allow exact timing",
+                    color = colors.blue,
+                    onClick = exactAccess.request,
+                )
+                HeightSpacer(height = 6.dp)
+                Text(
+                    text = "Without it, reminders can arrive up to 10 min early, or late while the phone is idle.",
+                    style = TextStyle(
+                        fontFamily = FontFamily.Monospace,
+                        fontSize = 10.sp,
+                        color = colors.dim,
+                    ),
+                )
+            }
+        }
     }
 }

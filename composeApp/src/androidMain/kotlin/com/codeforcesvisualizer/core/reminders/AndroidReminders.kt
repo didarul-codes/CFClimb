@@ -7,6 +7,7 @@ import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
 import android.net.Uri
+import android.os.Build
 import androidx.core.app.NotificationChannelCompat
 import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
@@ -23,6 +24,9 @@ internal const val EXTRA_CONTEST_ID = "contest_id"
 internal const val EXTRA_CONTEST_NAME = "contest_name"
 internal const val EXTRA_START_TIME = "start_time_epoch_seconds"
 
+// The shortest window Android 12+ allows without exact alarm access.
+internal const val FALLBACK_WINDOW_MILLIS = 10 * 60 * 1000L
+
 class AndroidReminderScheduler(private val context: Context) : ReminderScheduler {
     private val alarmManager = context.getSystemService(AlarmManager::class.java)
 
@@ -31,16 +35,27 @@ class AndroidReminderScheduler(private val context: Context) : ReminderScheduler
             alarmManager.cancel(reminderIntent(contestId, leadTime, reminder = null))
         }
         reminders.forEach { reminder ->
-            // Inexact on purpose: exact alarms need SCHEDULE_EXACT_ALARM or USE_EXACT_ALARM, which
-            // Google Play reserves for alarm clock and calendar apps. Allow-while-idle still fires
-            // during Doze, typically within a few minutes of the requested time.
-            alarmManager.setAndAllowWhileIdle(
-                AlarmManager.RTC_WAKEUP,
-                reminder.triggerAtEpochSeconds * 1000,
-                reminderIntent(reminder.contestId, reminder.leadTime, reminder)
-            )
+            val triggerAtMillis = reminder.triggerAtEpochSeconds * 1000
+            val operation = reminderIntent(reminder.contestId, reminder.leadTime, reminder)
+            if (canScheduleExactAlarms()) {
+                alarmManager.setExactAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, triggerAtMillis, operation)
+            } else {
+                // Android lets an inexact alarm set days ahead arrive up to an hour late, which would
+                // put a "10 min before" reminder after the start. A window that ends at the reminder
+                // time arrives up to 10 minutes early instead. Doze can still hold it back.
+                alarmManager.setWindow(
+                    AlarmManager.RTC_WAKEUP,
+                    triggerAtMillis - FALLBACK_WINDOW_MILLIS,
+                    FALLBACK_WINDOW_MILLIS,
+                    operation
+                )
+            }
         }
     }
+
+    // SCHEDULE_EXACT_ALARM is granted up front on Android 12 and 13 but off by default from Android 14.
+    private fun canScheduleExactAlarms(): Boolean =
+        Build.VERSION.SDK_INT < Build.VERSION_CODES.S || alarmManager.canScheduleExactAlarms()
 
     private fun reminderIntent(contestId: Int, leadTime: ReminderLeadTime, reminder: PlannedReminder?): PendingIntent {
         val intent = Intent(context, ContestReminderReceiver::class.java).apply {
@@ -66,16 +81,22 @@ class AndroidReminderScheduler(private val context: Context) : ReminderScheduler
 class ContestReminderReceiver : BroadcastReceiver() {
     override fun onReceive(context: Context, intent: Intent) {
         if (intent.action != ACTION_CONTEST_REMINDER) return
+        val startTimeEpochSeconds = intent.getLongExtra(EXTRA_START_TIME, 0)
+        // A reminder held back by Doze until after the start is no longer useful.
+        if (startTimeEpochSeconds <= System.currentTimeMillis() / 1000) return
         ReminderNotifications.show(
             context = context,
             contestId = intent.getIntExtra(EXTRA_CONTEST_ID, 0),
             contestName = intent.getStringExtra(EXTRA_CONTEST_NAME) ?: return,
-            startTimeEpochSeconds = intent.getLongExtra(EXTRA_START_TIME, 0)
+            startTimeEpochSeconds = startTimeEpochSeconds
         )
     }
 }
 
-/** Alarms don't survive a reboot or an app update, and time changes shift them: schedule them again. */
+/**
+ * Alarms don't survive a reboot or an app update, time changes shift them, and newly granted exact
+ * alarm access should take effect at once: schedule them again.
+ */
 class RescheduleRemindersReceiver : BroadcastReceiver() {
     override fun onReceive(context: Context, intent: Intent) {
         val pendingResult = goAsync()
