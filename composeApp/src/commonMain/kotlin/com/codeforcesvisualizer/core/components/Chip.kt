@@ -67,21 +67,3 @@ fun Chip(
         )
     }
 }
-
-/**
- * Backward-compatible overload that accepts [label] instead of [text].
- */
-@Composable
-fun Chip(
-    modifier: Modifier = Modifier,
-    label: String,
-    icon: ImageVector? = null,
-    onClick: (() -> Unit)? = null,
-) {
-    Chip(
-        text = label,
-        modifier = modifier,
-        icon = icon,
-        onClick = onClick,
-    )
-}

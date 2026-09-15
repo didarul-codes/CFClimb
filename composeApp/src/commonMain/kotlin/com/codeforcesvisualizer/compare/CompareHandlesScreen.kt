@@ -45,6 +45,8 @@ import com.codeforcesvisualizer.core.components.WidthSpacer
 import com.codeforcesvisualizer.core.theme.CFThemeColors
 import com.codeforcesvisualizer.shared.domain.entity.UserRating
 import com.codeforcesvisualizer.shared.domain.entity.UserStatus
+import com.codeforcesvisualizer.shared.domain.stats.profileSummary
+import com.codeforcesvisualizer.shared.domain.stats.solvedTagCounts
 import org.koin.compose.viewmodel.koinViewModel
 
 @Composable
@@ -60,6 +62,12 @@ fun CompareHandlesScreen(
     val userStatusUiState by viewModel.userStatusState.collectAsState()
 
     val colors = CFThemeColors.current
+
+    // Rating and submission requests can fail independently, and the API words the same failure
+    // differently per endpoint, so show one error per handle.
+    val errorMessage = (userStatusUiState.errors + userRatingsUiState.errors)
+        .entries
+        .joinToString("\n") { (handle, message) -> "@$handle: $message" }
 
     LazyColumn(
         modifier = modifier
@@ -84,11 +92,11 @@ fun CompareHandlesScreen(
         }
 
         // Error state
-        if (userRatingsUiState.userMessage.isNotBlank()) {
+        if (errorMessage.isNotBlank()) {
             item {
                 Center(modifier = Modifier.padding(vertical = 16.dp)) {
                     Text(
-                        text = userRatingsUiState.userMessage,
+                        text = errorMessage,
                         style = TextStyle(
                             fontFamily = FontFamily.Monospace,
                             fontSize = 12.sp,
@@ -315,57 +323,32 @@ private fun HeadToHeadCard(
 ) {
     val colors = CFThemeColors.current
 
-    val currentRating1 = ratings1.lastOrNull()?.newRating ?: 0
-    val currentRating2 = ratings2.lastOrNull()?.newRating ?: 0
-    val maxRating1 = ratings1.maxOfOrNull { it.newRating } ?: 0
-    val maxRating2 = ratings2.maxOfOrNull { it.newRating } ?: 0
-    val contests1 = ratings1.size
-    val contests2 = ratings2.size
-    val bestRank1 = ratings1.minOfOrNull { it.rank } ?: 0
-    val bestRank2 = ratings2.minOfOrNull { it.rank } ?: 0
-
-    // Calculate solved/ac rate from status
-    val solved1 = status1?.count { it.verdict == "OK" } ?: 0
-    val solved2 = status2?.count { it.verdict == "OK" } ?: 0
-    val total1 = status1?.size ?: 1
-    val total2 = status2?.size ?: 1
-    val acRate1 = if (total1 > 0) (solved1 * 100 / total1) else 0
-    val acRate2 = if (total2 > 0) (solved2 * 100 / total2) else 0
-
-    // Max streak (consecutive rating increases)
-    fun maxStreak(ratings: List<UserRating>): Int {
-        var max = 0
-        var current = 0
-        for (r in ratings) {
-            if (r.newRating > r.oldRating) {
-                current++
-                max = maxOf(max, current)
-            } else {
-                current = 0
-            }
-        }
-        return max
-    }
-
-    val streak1 = maxStreak(ratings1)
-    val streak2 = maxStreak(ratings2)
+    val summary1 = remember(ratings1, status1) { profileSummary(ratings1, status1.orEmpty()) }
+    val summary2 = remember(ratings2, status2) { profileSummary(ratings2, status2.orEmpty()) }
+    val hasSubmissions = status1 != null && status2 != null
 
     data class DiffRow(
         val label: String,
-        val val1: String,
-        val val2: String,
+        val value1: Int?,
+        val value2: Int?,
+        val suffix: String = "",
         val higherIsWinner: Boolean = true,
-    )
+    ) {
+        val val1: String get() = value1?.let { "$it$suffix" } ?: "–"
+        val val2: String get() = value2?.let { "$it$suffix" } ?: "–"
+    }
 
-    val rows = listOf(
-        DiffRow("rating", currentRating1.toString(), currentRating2.toString()),
-        DiffRow("max", maxRating1.toString(), maxRating2.toString()),
-        DiffRow("solved", solved1.toString(), solved2.toString()),
-        DiffRow("contests", contests1.toString(), contests2.toString()),
-        DiffRow("ac rate", "$acRate1%", "$acRate2%"),
-        DiffRow("best rank", bestRank1.toString(), bestRank2.toString(), higherIsWinner = false),
-        DiffRow("max streak", streak1.toString(), streak2.toString()),
-    )
+    val rows = buildList {
+        add(DiffRow("rating", summary1.rating, summary2.rating))
+        add(DiffRow("max", summary1.maxRating, summary2.maxRating))
+        if (hasSubmissions) add(DiffRow("solved", summary1.solvedProblems, summary2.solvedProblems))
+        add(DiffRow("contests", summary1.ratedContests, summary2.ratedContests))
+        if (hasSubmissions) {
+            add(DiffRow("ac rate", summary1.acceptanceRatePercent, summary2.acceptanceRatePercent, suffix = "%"))
+        }
+        add(DiffRow("best rank", summary1.bestRank, summary2.bestRank, higherIsWinner = false))
+        add(DiffRow("max streak", summary1.longestGainStreak, summary2.longestGainStreak))
+    }
 
     CFCard(title = "head.to.head", contentPadding = 0.dp) {
         // Column headers
@@ -411,10 +394,10 @@ private fun HeadToHeadCard(
         HorizontalDivider(color = colors.border, thickness = 1.dp)
 
         rows.forEachIndexed { index, row ->
-            val num1 = row.val1.replace("%", "").toIntOrNull() ?: 0
-            val num2 = row.val2.replace("%", "").toIntOrNull() ?: 0
-            val winner1 = if (row.higherIsWinner) num1 > num2 else num1 < num2
-            val winner2 = if (row.higherIsWinner) num2 > num1 else num2 < num1
+            val v1 = row.value1
+            val v2 = row.value2
+            val winner1 = v1 != null && v2 != null && (if (row.higherIsWinner) v1 > v2 else v1 < v2)
+            val winner2 = v1 != null && v2 != null && (if (row.higherIsWinner) v2 > v1 else v2 < v1)
 
             Row(
                 modifier = Modifier
@@ -501,21 +484,9 @@ private fun TagRadarCard(
 ) {
     val colors = CFThemeColors.current
 
-    // Collect tag counts for each user
-    val tagCounts1 = remember(status1) {
-        status1
-            .filter { it.verdict == "OK" }
-            .flatMap { it.problem.tags }
-            .groupingBy { it }
-            .eachCount()
-    }
-    val tagCounts2 = remember(status2) {
-        status2
-            .filter { it.verdict == "OK" }
-            .flatMap { it.problem.tags }
-            .groupingBy { it }
-            .eachCount()
-    }
+    // Distinct solved problems per tag for each user
+    val tagCounts1 = remember(status1) { status1.solvedTagCounts().associate { it.tag to it.count } }
+    val tagCounts2 = remember(status2) { status2.solvedTagCounts().associate { it.tag to it.count } }
 
     // Find top 8 shared tags by combined count
     val allTags = (tagCounts1.keys + tagCounts2.keys)

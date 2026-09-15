@@ -18,12 +18,22 @@ import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.codeforcesvisualizer.core.platform.CalendarResult
 import com.codeforcesvisualizer.core.theme.CFThemeColors
 
 @Composable
-fun CalendarToast(onDismiss: () -> Unit) {
+fun CalendarToast(result: CalendarResult, onDismiss: () -> Unit) {
     val colors = CFThemeColors.current
     val shape = RoundedCornerShape(10.dp)
+
+    val (symbol, message, accent) = when (result) {
+        CalendarResult.Added -> Triple("✓", "Added to your calendar", colors.green)
+        CalendarResult.PermissionDenied -> Triple("!", "Calendar access is off. Allow it in Settings.", colors.amber)
+        CalendarResult.NoCalendarApp -> Triple("!", "No calendar app found", colors.amber)
+        CalendarResult.Failed -> Triple("✕", "Couldn't add the event. Try again.", colors.red)
+        // The calendar app is already on screen and shows its own confirmation.
+        CalendarResult.OpenedCalendarApp -> return
+    }
 
     Box(
         modifier = Modifier
@@ -36,20 +46,20 @@ fun CalendarToast(onDismiss: () -> Unit) {
                 .padding(horizontal = 24.dp, vertical = 32.dp)
                 .clip(shape)
                 .background(colors.surface2)
-                .border(1.dp, colors.green.copy(alpha = 0.3f), shape)
+                .border(1.dp, accent.copy(alpha = 0.3f), shape)
                 .padding(horizontal = 20.dp, vertical = 14.dp),
         ) {
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Text(
-                    text = "✓",
+                    text = symbol,
                     style = TextStyle(
                         fontSize = 14.sp,
-                        color = colors.green,
+                        color = accent,
                         fontWeight = FontWeight.Bold,
                     ),
                 )
                 Text(
-                    text = "  Calendar event created",
+                    text = "  $message",
                     style = TextStyle(
                         fontFamily = FontFamily.Monospace,
                         fontSize = 12.sp,

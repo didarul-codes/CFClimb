@@ -12,6 +12,7 @@ import com.codeforcesvisualizer.shared.data.model.UserRatingResponseModel
 import com.codeforcesvisualizer.shared.data.model.UserStatusResponseModel
 import com.codeforcesvisualizer.shared.data.network.CFApiResponse
 import com.codeforcesvisualizer.shared.data.network.CFApiService
+import com.codeforcesvisualizer.shared.data.network.RequestThrottle
 import io.ktor.http.isSuccess
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
@@ -26,7 +27,8 @@ interface CFRemoteDataSource {
 }
 
 class CFRemoteDataSourceImpl(
-    private val api: CFApiService
+    private val api: CFApiService,
+    private val throttle: RequestThrottle
 ) : CFRemoteDataSource {
     override suspend fun getContestList(): Either<AppError, ContestListResponseModel> {
         return executeRequest(
@@ -62,7 +64,7 @@ class CFRemoteDataSourceImpl(
     ): Either<AppError, T> {
         return withContext(Dispatchers.IO) {
             try {
-                val response = request()
+                val response = throttle.run { request() }
                 if (!response.statusCode.isSuccess()) {
                     return@withContext Either.Left(
                         response.body?.comment?.takeIf { it.isNotBlank() }?.let { AppError(it) }

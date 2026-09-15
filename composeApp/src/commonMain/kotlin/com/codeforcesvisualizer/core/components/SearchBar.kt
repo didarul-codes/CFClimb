@@ -92,6 +92,13 @@ internal fun SearchBarInputField(
         mutableStateOf(TextFieldValue(searchText, selection = TextRange(searchText.length)))
     }
 
+    // Follow changes made outside the field, such as tapping a recent search.
+    LaunchedEffect(searchText) {
+        if (searchText != textFieldValue.text) {
+            textFieldValue = TextFieldValue(searchText, selection = TextRange(searchText.length))
+        }
+    }
+
     TextField(
         modifier = modifier
             .padding(vertical = 2.dp)

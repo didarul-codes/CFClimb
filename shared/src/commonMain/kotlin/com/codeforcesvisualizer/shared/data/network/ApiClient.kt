@@ -17,7 +17,11 @@ import io.ktor.http.takeFrom
 import kotlinx.serialization.json.Json
 
 object ApiClient {
-    fun getHttpClient(): HttpClient {
+    /**
+     * @param enableLogging logs request and response bodies. Keep it off in release builds:
+     * `user.status` responses for active users are hundreds of kilobytes.
+     */
+    fun getHttpClient(enableLogging: Boolean): HttpClient {
         return HttpClient {
             expectSuccess = false
 
@@ -37,9 +41,11 @@ object ApiClient {
                 )
             }
 
-            install(Logging) {
-                logger = Logger.DEFAULT
-                level = LogLevel.BODY
+            if (enableLogging) {
+                install(Logging) {
+                    logger = Logger.DEFAULT
+                    level = LogLevel.BODY
+                }
             }
 
             defaultRequest {

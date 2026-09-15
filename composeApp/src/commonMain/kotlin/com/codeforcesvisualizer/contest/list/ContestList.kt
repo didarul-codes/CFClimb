@@ -38,6 +38,9 @@ import kotlinx.coroutines.delay
 import com.codeforcesvisualizer.core.components.Chip
 import com.codeforcesvisualizer.core.components.CountdownTimer
 import com.codeforcesvisualizer.core.components.HeightSpacer
+import com.codeforcesvisualizer.core.platform.CalendarResult
+import com.codeforcesvisualizer.core.platform.rememberCalendarLauncher
+import com.codeforcesvisualizer.core.platform.toCalendarEvent
 import com.codeforcesvisualizer.core.theme.CFThemeColors
 import com.codeforcesvisualizer.core.utils.convertTimeStampToDateString
 import com.codeforcesvisualizer.core.utils.convertToHMS
@@ -52,11 +55,11 @@ internal fun ContestList(
     contestList: List<Contest>,
     username: String,
     openContestDetails: (Int) -> Unit,
-    onAddToCalendar: (Contest) -> Unit,
 ) {
     val colors = CFThemeColors.current
     var selectedTab by remember { mutableStateOf(ContestTab.UPCOMING) }
-    var showCalendarToast by remember { mutableStateOf(false) }
+    var calendarResult by remember { mutableStateOf<CalendarResult?>(null) }
+    val launchCalendar = rememberCalendarLauncher { result -> calendarResult = result }
 
     val upcoming = remember(contestList) {
         contestList.filter { it.scheduled }.sortedBy { it.startTimeSeconds }
@@ -93,8 +96,7 @@ internal fun ContestList(
                         contest = upcoming.first(),
                         onOpenContest = { openContestDetails(it) },
                         onAddToCalendar = {
-                            onAddToCalendar(upcoming.first())
-                            showCalendarToast = true
+                            launchCalendar(upcoming.first().toCalendarEvent())
                         },
                     )
                 }
@@ -128,15 +130,16 @@ internal fun ContestList(
             }
         }
 
-        // Calendar toast overlay
-        if (showCalendarToast) {
+        // Calendar result overlay
+        calendarResult?.let { result ->
             CalendarToast(
-                onDismiss = { showCalendarToast = false },
+                result = result,
+                onDismiss = { calendarResult = null },
             )
 
-            LaunchedEffect(showCalendarToast) {
+            LaunchedEffect(result) {
                 delay(2500)
-                showCalendarToast = false
+                calendarResult = null
             }
         }
     }

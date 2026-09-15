@@ -43,7 +43,6 @@ data class RatingSeriesData(
 fun RatingLineChart(
     series: List<RatingSeriesData>,
     modifier: Modifier = Modifier,
-    width: Dp = 360.dp,
     height: Dp = 220.dp,
 ) {
     val colors = CFThemeColors.current
@@ -68,7 +67,7 @@ fun RatingLineChart(
 
     Canvas(
         modifier = modifier
-            .width(width)
+            .fillMaxWidth()
             .height(height)
     ) {
         val padTop = 12.dp.toPx()

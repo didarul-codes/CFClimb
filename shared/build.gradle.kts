@@ -65,6 +65,7 @@ kotlin {
                 implementation(libs.io.ktor.client.content.negotiation)
                 implementation(libs.io.ktor.serialization.kotlinx.json)
                 implementation(libs.kotlinx.serialization.json)
+                implementation(libs.kotlinx.datetime)
                 implementation(libs.io.ktor.client.logging)
                 implementation(libs.androidx.datastore)
                 implementation(libs.androidx.datastore.preferences)
@@ -74,6 +75,7 @@ kotlin {
         commonTest {
             dependencies {
                 implementation(libs.kotlin.test)
+                implementation(libs.kotlinx.coroutines.test)
             }
         }
 

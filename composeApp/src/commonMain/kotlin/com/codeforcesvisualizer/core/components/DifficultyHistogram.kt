@@ -59,6 +59,13 @@ fun DifficultyHistogram(
         val bucketCount = buckets.size
         val barWidth = (size.width - barGap * (bucketCount - 1)) / bucketCount
 
+        // Up to 28 buckets (800–3500) don't leave room for every label, so label every n-th bar.
+        val labels = buckets.map { textMeasurer.measure(AnnotatedString(it.range), style = labelStyle) }
+        val widestLabel = labels.maxOf { it.size.width }
+        val labelEvery = kotlin.math.ceil((widestLabel + 4.dp.toPx()) / (barWidth + barGap))
+            .toInt()
+            .coerceAtLeast(1)
+
         buckets.forEachIndexed { index, bucket ->
             val ratio = bucket.count.toFloat() / maxCount.coerceAtLeast(1)
             val barHeight = ratio * plotHeight
@@ -75,18 +82,18 @@ fun DifficultyHistogram(
                 size = Size(barWidth, barHeight),
             )
 
-            // X-axis label below each bar
-            val labelMeasured = textMeasurer.measure(
-                AnnotatedString(bucket.range),
-                style = labelStyle,
-            )
-            drawText(
-                textLayoutResult = labelMeasured,
-                topLeft = Offset(
-                    x = x + (barWidth - labelMeasured.size.width) / 2f,
-                    y = topPadding + plotHeight + 4.dp.toPx(),
-                ),
-            )
+            // X-axis label below the bar
+            if (index % labelEvery == 0) {
+                val labelMeasured = labels[index]
+                drawText(
+                    textLayoutResult = labelMeasured,
+                    topLeft = Offset(
+                        x = (x + (barWidth - labelMeasured.size.width) / 2f)
+                            .coerceIn(0f, size.width - labelMeasured.size.width),
+                        y = topPadding + plotHeight + 4.dp.toPx(),
+                    ),
+                )
+            }
         }
     }
 }

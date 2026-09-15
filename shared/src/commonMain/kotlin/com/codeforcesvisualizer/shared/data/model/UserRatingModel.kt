@@ -9,8 +9,14 @@ data class UserRatingModel(
     @SerialName("contestId")
     val contestId: Int,
 
+    @SerialName("contestName")
+    val contestName: String = "",
+
     @SerialName("rank")
     val rank: Int,
+
+    @SerialName("ratingUpdateTimeSeconds")
+    val ratingUpdateTimeSeconds: Long = 0,
 
     @SerialName("oldRating")
     val oldRating: Int,
@@ -21,7 +27,9 @@ data class UserRatingModel(
     fun toEntity(): UserRating {
         return UserRating(
             contestId = contestId,
+            contestName = contestName,
             rank = rank,
+            ratingUpdateTimeSeconds = ratingUpdateTimeSeconds,
             oldRating = oldRating,
             newRating = newRating
         )

@@ -7,10 +7,16 @@ import kotlinx.serialization.Serializable
 @Serializable
 data class ProblemModel(
     @SerialName("contestId")
-    val contestId: Int,
+    val contestId: Int? = null,
+
+    @SerialName("problemsetName")
+    val problemsetName: String? = null,
 
     @SerialName("index")
     val index: String,
+
+    @SerialName("rating")
+    val rating: Int? = null,
 
     @SerialName("tags")
     val tags: List<String> = emptyList(),
@@ -21,9 +27,11 @@ data class ProblemModel(
     fun toEntity(): Problem {
         return Problem(
             contestId = contestId,
+            problemsetName = problemsetName,
             index = index,
-            tags = tags,
-            name = name
+            name = name,
+            rating = rating,
+            tags = tags
         )
     }
 }

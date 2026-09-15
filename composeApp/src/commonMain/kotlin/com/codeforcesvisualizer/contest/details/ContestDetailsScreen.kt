@@ -46,6 +46,9 @@ import com.codeforcesvisualizer.core.components.Center
 import com.codeforcesvisualizer.core.components.Chip
 import com.codeforcesvisualizer.core.components.CountdownTimer
 import com.codeforcesvisualizer.core.components.HeightSpacer
+import com.codeforcesvisualizer.core.platform.CalendarResult
+import com.codeforcesvisualizer.core.platform.rememberCalendarLauncher
+import com.codeforcesvisualizer.core.platform.toCalendarEvent
 import com.codeforcesvisualizer.core.theme.CFThemeColors
 import com.codeforcesvisualizer.core.utils.convertTimeStampToDateString
 import com.codeforcesvisualizer.core.utils.convertToHMS
@@ -59,7 +62,6 @@ fun ContestDetailsScreen(
     contestId: Int,
     onNavigateBack: () -> Unit,
     onOpenWebSite: (Int) -> Unit,
-    onAddToCalendar: (Contest) -> Unit = {},
     viewModel: ContestDetailsViewModel = koinViewModel(),
 ) {
     val uiState by viewModel.uiState.collectAsState()
@@ -101,7 +103,6 @@ fun ContestDetailsScreen(
                     contest = uiState.contest!!,
                     remainingTime = remainingTimeState,
                     onOpenWebSite = onOpenWebSite,
-                    onAddToCalendar = onAddToCalendar,
                 )
             }
         }
@@ -173,11 +174,11 @@ private fun ContestDetailsContent(
     contest: Contest,
     remainingTime: Long,
     onOpenWebSite: (Int) -> Unit,
-    onAddToCalendar: (Contest) -> Unit,
 ) {
     val colors = CFThemeColors.current
     val isUpcoming = contest.scheduled
-    var showCalendarToast by remember { mutableStateOf(false) }
+    var calendarResult by remember { mutableStateOf<CalendarResult?>(null) }
+    val launchCalendar = rememberCalendarLauncher { result -> calendarResult = result }
 
     Box(modifier = modifier) {
         Column(
@@ -272,8 +273,7 @@ private fun ContestDetailsContent(
             if (isUpcoming) {
                 CalendarButton(
                     onClick = {
-                        onAddToCalendar(contest)
-                        showCalendarToast = true
+                        launchCalendar(contest.toCalendarEvent())
                         EventLogger.logEvent(
                             event = "Add to Calender",
                             param = mapOf("from" to "Contest Details")
@@ -297,15 +297,16 @@ private fun ContestDetailsContent(
             HeightSpacer(height = 80.dp)
         }
 
-        // Calendar toast overlay
-        if (showCalendarToast) {
+        // Calendar result overlay
+        calendarResult?.let { result ->
             CalendarToast(
-                onDismiss = { showCalendarToast = false },
+                result = result,
+                onDismiss = { calendarResult = null },
             )
 
-            LaunchedEffect(showCalendarToast) {
+            LaunchedEffect(result) {
                 delay(2500)
-                showCalendarToast = false
+                calendarResult = null
             }
         }
     }

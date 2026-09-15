@@ -19,7 +19,6 @@ import com.codeforcesvisualizer.core.components.Center
 import com.codeforcesvisualizer.core.components.ScreenHeader
 import com.codeforcesvisualizer.core.data.UserSettingsRepository
 import com.codeforcesvisualizer.core.theme.CFThemeColors
-import com.codeforcesvisualizer.shared.domain.entity.Contest
 import org.koin.compose.koinInject
 import org.koin.compose.viewmodel.koinViewModel
 
@@ -30,7 +29,6 @@ fun ContestListScreen(
     openSearch: () -> Unit = {},
     openContestDetails: (Int) -> Unit = {},
     onOpenWebSite: (Int) -> Unit = {},
-    onAddToCalendar: (Contest) -> Unit = {},
 ) {
     val uiState = viewModel.uiState.collectAsState()
     val userSettingsRepository = koinInject<UserSettingsRepository>()
@@ -46,7 +44,6 @@ fun ContestListScreen(
                 param = mapOf("ContestId" to contestId)
             )
         },
-        onAddToCalendar = onAddToCalendar,
     )
 }
 
@@ -56,7 +53,6 @@ private fun ContestListScreenContent(
     state: State<ContestListUiState>,
     username: String,
     openContestDetails: (Int) -> Unit,
-    onAddToCalendar: (Contest) -> Unit,
 ) {
     val colors = CFThemeColors.current
 
@@ -107,7 +103,6 @@ private fun ContestListScreenContent(
                     contestList = state.value.contestList,
                     username = username,
                     openContestDetails = openContestDetails,
-                    onAddToCalendar = onAddToCalendar,
                 )
             }
         }

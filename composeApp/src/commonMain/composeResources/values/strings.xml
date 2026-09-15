@@ -1,48 +1,10 @@
 <resources>
     <string name="app_name">Codeforces Companion</string>
-    <string name="compare">Compare</string>
-    <string name="first_handle">First Handle</string>
-    <string name="second_handle">Second Handle</string>
     <string name="hanldles_can_not_be_empty">Handles can not be empty</string>
-    <string name="ratings">Ratings</string>
-    <string name="contests">Contests</string>
-    <string name="max_up_and_down">Max Up and Down</string>
-    <string name="max_up">Max Up</string>
-    <string name="max_down">Max Down</string>
-    <string name="rank">Rank</string>
-    <string name="best_rank">Best Rank</string>
-    <string name="worst_rank">Worst Rank</string>
-    <string name="tried_and_solved">Tried and Solved</string>
-    <string name="solved_with_onr_submission">Solved with One Submission</string>
     <string name="compare_users">Compare Users</string>
 
-    <string name="upcoming">Upcoming</string>
-    <string name="past">Past</string>
     <string name="results">Results</string>
     <string name="contest_search_placeholder">Enter Contest name of type</string>
-    <string name="before_start">Before Start</string>
-    <string name="register">Register Now</string>
-    <string name="contest_ended">Contest Ended</string>
-    <string name="refresh">Refresh</string>
-    <string name="search">Search</string>
-    <string name="add_to_calender">Add to Calender</string>
-
-    <string name="preferences">Preferences</string>
-    <string name="google_play_store_not_found">Google Play Store Not Found</string>
-    <string name="others">Others</string>
-    <string name="rate_app">Rate App</string>
-    <string name="current_version">Current Version: %1$s</string>
-    <string name="appearance">Appearance</string>
-    <string name="theme">Theme</string>
-    <string name="light_mode">Light Mode</string>
-    <string name="dark_mode">Dark Mode</string>
-    <string name="system_settings">System Settings</string>
 
     <string name="enter_handle_hint">Enter Handle</string>
-    <string name="profile">Profile</string>
-    <string name="levels">Levels</string>
-    <string name="language">Language</string>
-    <string name="tags">Tags</string>
-    <string name="verdicts">Verdicts</string>
-    <string name="unsolved">Unsolved</string>
 </resources>

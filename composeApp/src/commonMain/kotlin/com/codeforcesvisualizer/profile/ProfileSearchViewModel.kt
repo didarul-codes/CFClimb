@@ -7,6 +7,7 @@ import com.codeforcesvisualizer.shared.core.Either
 import com.codeforcesvisualizer.shared.domain.usecase.GetUserInfoByHandleUseCase
 import com.codeforcesvisualizer.shared.domain.usecase.GetUserRatingsByHandleUseCase
 import com.codeforcesvisualizer.shared.domain.usecase.GetUserStatusByHandleUseCase
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -34,81 +35,56 @@ class ProfileSearchViewModel(
     val recentSearches: StateFlow<List<String>> = recentSearchRepository.recentSearches
         .stateIn(viewModelScope, SharingStarted.Lazily, emptyList())
 
+    private var searchJob: Job? = null
+
     fun onSearchTextChanged(text: String) {
         _searchTextState.value = text
     }
 
-    fun getUserInfoByHandle(handle: String) {
+    /**
+     * Loads the profile for [handle]. Starting a new search cancels requests still queued for the
+     * previous one, so a slow earlier response can't replace newer results.
+     */
+    fun search(handle: String) {
+        if (handle.isBlank()) return
+        searchJob?.cancel()
         viewModelScope.launch { recentSearchRepository.addSearch(handle) }
+
         _userInfoState.value = _userInfoState.value.copy(loading = true)
-        viewModelScope.launch {
-            when (val data = getUserInfoByHandleUseCase(handle)) {
-                is Either.Left -> {
-                    _userInfoState.value = _userInfoState.value.copy(
-                        loading = false,
-                        userMessage = data.data.message,
-                        user = null
-                    )
-                }
-
-                is Either.Right -> {
-                    _userInfoState.value = _userInfoState.value.copy(
-                        loading = false,
-                        userMessage = "",
-                        user = data.data
-                    )
-                }
-            }
-        }
-    }
-
-    fun getUserStatusByHandle(handle: String) {
-        _userStatusState.value = _userStatusState.value.copy(loading = true)
-        viewModelScope.launch {
-            when (val data = getUserStatusByHandleUseCase(handle)) {
-                is Either.Left -> {
-                    _userStatusState.value = _userStatusState.value.copy(
-                        loading = false,
-                        userMessage = data.data.message,
-                        userStatus = null
-                    )
-                }
-
-                is Either.Right -> {
-                    _userStatusState.value = _userStatusState.value.copy(
-                        loading = false,
-                        userMessage = "",
-                        userStatus = data.data
-                    )
-                }
-            }
-        }
-    }
-
-    fun getUserRatingByHandle(handle: String) {
         _userRatingState.value = _userRatingState.value.copy(loading = true)
-        viewModelScope.launch {
-            when (val data = getUserRatingByHandleUseCase(handle)) {
-                is Either.Left -> {
-                    _userRatingState.value = _userRatingState.value.copy(
-                        loading = false,
-                        userMessage = data.data.message,
-                        userRatings = null
-                    )
-                }
+        _userStatusState.value = _userStatusState.value.copy(loading = true)
 
-                is Either.Right -> {
-                    _userRatingState.value = _userRatingState.value.copy(
-                        loading = false,
-                        userMessage = "",
-                        userRatings = data.data
-                    )
-                }
-            }
+        // Requests run one after another through the API throttle; the small responses go first
+        // so the header and rating appear before the submission history arrives.
+        searchJob = viewModelScope.launch {
+            loadUserInfo(handle)
+            loadUserRating(handle)
+            loadUserStatus(handle)
         }
     }
 
     fun clearRecentSearches() {
         viewModelScope.launch { recentSearchRepository.clearAll() }
+    }
+
+    private suspend fun loadUserInfo(handle: String) {
+        _userInfoState.value = when (val data = getUserInfoByHandleUseCase(handle)) {
+            is Either.Left -> UserInfoUiState(loading = false, userMessage = data.data.message, user = null)
+            is Either.Right -> UserInfoUiState(loading = false, userMessage = "", user = data.data)
+        }
+    }
+
+    private suspend fun loadUserStatus(handle: String) {
+        _userStatusState.value = when (val data = getUserStatusByHandleUseCase(handle)) {
+            is Either.Left -> UserStatusUiState(loading = false, userMessage = data.data.message, userStatus = null)
+            is Either.Right -> UserStatusUiState(loading = false, userMessage = "", userStatus = data.data)
+        }
+    }
+
+    private suspend fun loadUserRating(handle: String) {
+        _userRatingState.value = when (val data = getUserRatingByHandleUseCase(handle)) {
+            is Either.Left -> UserRatingUiState(loading = false, userMessage = data.data.message, userRatings = null)
+            is Either.Right -> UserRatingUiState(loading = false, userMessage = "", userRatings = data.data)
+        }
     }
 }

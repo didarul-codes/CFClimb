@@ -4,7 +4,8 @@ import com.codeforcesvisualizer.shared.domain.entity.UserRating
 
 data class UserRatingUiState(
     val loading: Boolean = false,
-    val userMessage: String = "",
+    /** Error message per handle that failed to load. */
+    val errors: Map<String, String> = emptyMap(),
     val userRatings1: List<UserRating>? = null,
     val userRatings2: List<UserRating>? = null
 )

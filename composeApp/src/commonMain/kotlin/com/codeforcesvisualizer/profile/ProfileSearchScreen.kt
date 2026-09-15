@@ -57,6 +57,15 @@ import com.codeforcesvisualizer.core.theme.rankColorFor
 import com.codeforcesvisualizer.shared.domain.entity.User
 import com.codeforcesvisualizer.shared.domain.entity.UserRating
 import com.codeforcesvisualizer.shared.domain.entity.UserStatus
+import com.codeforcesvisualizer.shared.domain.stats.acceptanceRatePercent
+import com.codeforcesvisualizer.shared.domain.stats.bestRank
+import com.codeforcesvisualizer.shared.domain.stats.currentGainStreak
+import com.codeforcesvisualizer.shared.domain.stats.heatmapGrid
+import com.codeforcesvisualizer.shared.domain.stats.solvedProblems
+import com.codeforcesvisualizer.shared.domain.stats.submissionsPerDay
+import kotlinx.datetime.Clock
+import kotlinx.datetime.TimeZone
+import kotlinx.datetime.toLocalDateTime
 import org.jetbrains.compose.resources.stringResource
 import org.koin.compose.viewmodel.koinViewModel
 
@@ -88,13 +97,8 @@ fun ProfileSearchScreen(
                 viewModel.onSearchTextChanged(text)
             },
             onSearch = {
-                viewModel.getUserInfoByHandle(searchTextState)
-                viewModel.getUserStatusByHandle(searchTextState)
-                viewModel.getUserRatingByHandle(searchTextState)
-                EventLogger.logEvent(
-                    event = "Search User",
-                    param = mapOf("Handle" to searchTextState)
-                )
+                viewModel.search(searchTextState)
+                EventLogger.logEvent(event = "Search User")
             },
             onClearText = { viewModel.onSearchTextChanged("") },
             onNavigateBack = onNavigateBack
@@ -105,9 +109,7 @@ fun ProfileSearchScreen(
                 searches = recentSearches,
                 onSearchClick = { handle ->
                     viewModel.onSearchTextChanged(handle)
-                    viewModel.getUserInfoByHandle(handle)
-                    viewModel.getUserStatusByHandle(handle)
-                    viewModel.getUserRatingByHandle(handle)
+                    viewModel.search(handle)
                 },
                 onClearAll = { viewModel.clearRecentSearches() },
                 modifier = Modifier.padding(horizontal = 18.dp, vertical = 12.dp),
@@ -375,18 +377,7 @@ private fun HypeBanner(
 ) {
     val colors = CFThemeColors.current
 
-    // Calculate streak from consecutive contests
-    val streak = remember(userRatings) {
-        if (userRatings.isEmpty()) 0
-        else {
-            var count = 0
-            for (i in userRatings.indices.reversed()) {
-                val change = userRatings[i].newRating - userRatings[i].oldRating
-                if (change > 0) count++ else break
-            }
-            count
-        }
-    }
+    val streak = remember(userRatings) { userRatings.currentGainStreak() }
 
     // Calculate rating needed for next rank
     val nextRankInfo = remember(user.rating) {
@@ -458,28 +449,13 @@ private fun StatGrid(
 ) {
     val colors = CFThemeColors.current
 
-    val solved = remember(userStatusList) {
-        userStatusList
-            ?.filter { it.verdict == "OK" }
-            ?.map { "${it.problem.contestId}-${it.problem.index}" }
-            ?.distinct()
-            ?.size ?: 0
-    }
+    val solved = remember(userStatusList) { userStatusList?.solvedProblems()?.size ?: 0 }
 
     val contests = userRatingList?.size ?: 0
 
-    val acRate = remember(userStatusList) {
-        if (userStatusList.isNullOrEmpty()) "0%"
-        else {
-            val ac = userStatusList.count { it.verdict == "OK" }
-            val pct = (ac * 100) / userStatusList.size
-            "$pct%"
-        }
-    }
+    val acRate = remember(userStatusList) { "${userStatusList?.acceptanceRatePercent() ?: 0}%" }
 
-    val bestRank = remember(userRatingList) {
-        userRatingList?.minOfOrNull { it.rank }?.toString() ?: "-"
-    }
+    val bestRank = remember(userRatingList) { userRatingList?.bestRank()?.toString() ?: "-" }
 
     Column(modifier = modifier, verticalArrangement = Arrangement.spacedBy(10.dp)) {
         Row(
@@ -542,26 +518,11 @@ private fun SubmissionHeatmapCard(
     userStatusList: List<UserStatus>,
     modifier: Modifier = Modifier
 ) {
-    // Since UserStatus does not have timestamp info, generate placeholder heatmap data
     val cells = remember(userStatusList) {
-        val totalSubmissions = userStatusList.size
-        val cellList = mutableListOf<HeatmapCell>()
-        // Distribute submissions across 26 weeks as a rough approximation
-        var remaining = totalSubmissions
-        for (w in 25 downTo 0) {
-            for (d in 0 until 7) {
-                if (remaining <= 0) {
-                    cellList.add(HeatmapCell(week = w, day = d, count = 0))
-                } else {
-                    // Distribute with some variance
-                    val avg = remaining / ((w * 7 + d) + 1).coerceAtLeast(1)
-                    val count = avg.coerceAtMost(6).coerceAtLeast(0)
-                    cellList.add(HeatmapCell(week = w, day = d, count = count))
-                    remaining -= count
-                }
-            }
-        }
-        cellList
+        val timeZone = TimeZone.currentSystemDefault()
+        val today = Clock.System.now().toLocalDateTime(timeZone).date
+        heatmapGrid(userStatusList.submissionsPerDay(timeZone), today, weeks = 26)
+            .map { HeatmapCell(week = it.week, day = it.dayOfWeek, count = it.count) }
     }
 
     CFCard(
@@ -629,7 +590,7 @@ private fun RecentActivityCard(
                     }
 
                     Text(
-                        text = "${status.problem.contestId}${status.problem.index}",
+                        text = status.problem.label,
                         style = TextStyle(
                             fontFamily = FontFamily.Monospace,
                             fontSize = 10.sp,
