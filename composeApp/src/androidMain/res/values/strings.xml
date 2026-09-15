@@ -1,3 +1,5 @@
 <resources>
-    <string name="app_name">Codeforces Companion</string>
+    <string name="app_name">CFClimb</string>
+    <string name="widget_name">Next round</string>
+    <string name="widget_description">Next Codeforces round and your rating</string>
 </resources>

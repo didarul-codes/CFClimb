@@ -52,7 +52,8 @@ private enum class ContestTab { UPCOMING, PAST }
 @Composable
 internal fun ContestList(
     modifier: Modifier = Modifier,
-    contestList: List<Contest>,
+    groups: ContestGroups,
+    nowEpochSeconds: Long,
     username: String,
     openContestDetails: (Int) -> Unit,
 ) {
@@ -61,12 +62,9 @@ internal fun ContestList(
     var calendarResult by remember { mutableStateOf<CalendarResult?>(null) }
     val launchCalendar = rememberCalendarLauncher { result -> calendarResult = result }
 
-    val upcoming = remember(contestList) {
-        contestList.filter { it.scheduled }.sortedBy { it.startTimeSeconds }
-    }
-    val past = remember(contestList) {
-        contestList.filter { !it.scheduled }
-    }
+    val live = groups.live
+    val upcoming = groups.upcoming
+    val past = groups.past
 
     val state = rememberLazyListState()
 
@@ -76,7 +74,7 @@ internal fun ContestList(
             item {
                 TabBar(
                     selectedTab = selectedTab,
-                    upcomingCount = upcoming.size,
+                    upcomingCount = live.size + upcoming.size,
                     pastCount = past.size,
                     onTabSelected = { selectedTab = it },
                 )
@@ -87,6 +85,27 @@ internal fun ContestList(
                 item {
                     StreakBanner(username = username)
                 }
+            }
+
+            // Running rounds are pinned above everything else in the upcoming tab.
+            if (selectedTab == ContestTab.UPCOMING && live.isNotEmpty()) {
+                item { SectionLabel(text = "live now") }
+                items(live, key = { it.id }) { contest ->
+                    ContestListItem(
+                        modifier = Modifier.padding(horizontal = 16.dp, vertical = 4.dp),
+                        contest = contest,
+                        isUpcoming = false,
+                        onOpenContest = openContestDetails,
+                        liveLabel = liveStatusLabel(contest, nowEpochSeconds),
+                    )
+                }
+                if (upcoming.isNotEmpty()) {
+                    item { SectionLabel(text = "next up") }
+                }
+            }
+
+            if (selectedTab == ContestTab.UPCOMING && live.isEmpty() && upcoming.isEmpty()) {
+                item { SectionLabel(text = "No upcoming rounds saved. Pull down to refresh.") }
             }
 
             // Hero card for first upcoming contest
@@ -347,6 +366,21 @@ private fun ActionButton(
             ),
         )
     }
+}
+
+@Composable
+private fun SectionLabel(text: String) {
+    val colors = CFThemeColors.current
+    Text(
+        text = "// $text",
+        style = TextStyle(
+            fontFamily = FontFamily.Monospace,
+            fontSize = 10.sp,
+            letterSpacing = 0.08.sp,
+            color = colors.dim,
+        ),
+        modifier = Modifier.padding(start = 20.dp, end = 20.dp, top = 10.dp, bottom = 2.dp),
+    )
 }
 
 @Composable

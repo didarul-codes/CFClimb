@@ -30,7 +30,12 @@ internal sealed class LeafScreen(val route: String) {
         }
     }
 
-    object Profile : LeafScreen("profile")
+    /** The optional handle opens that profile straight away, for example from a shared link. */
+    object Profile : LeafScreen("profile?handle={handle}") {
+        fun createRoute(root: Screen, handle: String): String {
+            return "${root.route}/profile?handle=$handle"
+        }
+    }
 
     object CompareHandleInput : LeafScreen("compare/handle-input")
     object CompareViewResult : LeafScreen("compare/view-result")

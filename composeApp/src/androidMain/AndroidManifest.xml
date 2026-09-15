@@ -29,6 +29,45 @@
 
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
+
+            <!-- Codeforces profile and contest links. Not autoVerify: the app can't host a Digital
+                 Asset Links file on codeforces.com, so on Android 12+ the user allows these in
+                 settings (offered on the Settings screen). -->
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+
+                <data android:scheme="https" />
+                <data android:host="codeforces.com" />
+                <data android:host="www.codeforces.com" />
+                <data android:host="m1.codeforces.com" />
+                <data android:host="m2.codeforces.com" />
+                <data android:host="m3.codeforces.com" />
+                <data android:pathPrefix="/profile/" />
+                <data android:pathPrefix="/contest/" />
+                <data android:pathPrefix="/contests/" />
+            </intent-filter>
+
+            <!-- The app's own links, such as cfclimb://contest/2266. -->
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+
+                <data android:scheme="cfclimb" />
+            </intent-filter>
+
+            <!-- "Share → CFClimb" with a Codeforces link, which works without any setup. -->
+            <intent-filter>
+                <action android:name="android.intent.action.SEND" />
+
+                <category android:name="android.intent.category.DEFAULT" />
+
+                <data android:mimeType="text/plain" />
+            </intent-filter>
         </activity>
 
         <receiver
@@ -45,6 +84,18 @@
                 <action android:name="android.intent.action.TIME_SET" />
                 <action android:name="android.app.action.SCHEDULE_EXACT_ALARM_PERMISSION_STATE_CHANGED" />
             </intent-filter>
+        </receiver>
+
+        <receiver
+            android:name=".core.widget.CFClimbWidgetReceiver"
+            android:exported="true"
+            android:label="@string/widget_name">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+            </intent-filter>
+            <meta-data
+                android:name="android.appwidget.provider"
+                android:resource="@xml/cfclimb_widget_info" />
         </receiver>
     </application>
 

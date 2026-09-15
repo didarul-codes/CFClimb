@@ -67,6 +67,34 @@ fun Int.convertTimeStampToDateString(format: String = DefaultAppDateFormat): Str
     return dateTimeFormatter(format).format(localDateTime)
 }
 
+/** Time until a contest starts as a short label, such as "6d 4h", "3h 5m" or "42m". */
+fun formatTimeUntil(startTimeSeconds: Long, nowEpochSeconds: Long): String {
+    val diff = startTimeSeconds - nowEpochSeconds
+    if (diff <= 0) return "now"
+    val days = diff / 86400
+    val hours = (diff % 86400) / 3600
+    val minutes = (diff % 3600) / 60
+    return when {
+        days > 0 -> "${days}d ${hours}h"
+        hours > 0 -> "${hours}h ${minutes}m"
+        else -> "${minutes}m"
+    }
+}
+
+/** Weekday and time, such as "Mon 10:35 PM", for places without room for the full date. */
+fun formatStartShort(epochSeconds: Long, timeZone: TimeZone = systemTimeZone): String =
+    shortStartFormat.format(Instant.fromEpochSeconds(epochSeconds).toLocalDateTime(timeZone))
+
+private val shortStartFormat = LocalDateTime.Format {
+    dayOfWeek(DayOfWeekNames.ENGLISH_ABBREVIATED)
+    char(' ')
+    amPmHour(Padding.NONE)
+    char(':')
+    minute(Padding.ZERO)
+    char(' ')
+    amPmMarker(am = "AM", pm = "PM")
+}
+
 private val systemTimeZone: TimeZone = TimeZone.currentSystemDefault()
 
 @OptIn(FormatStringsInDatetimeFormats::class)

@@ -11,6 +11,7 @@ import com.codeforcesvisualizer.testing.FakeCFRepository
 import com.codeforcesvisualizer.testing.contest
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.test.StandardTestDispatcher
 import kotlinx.coroutines.test.advanceUntilIdle
 import kotlinx.coroutines.test.resetMain
@@ -21,6 +22,8 @@ import kotlin.test.BeforeTest
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFalse
+
+private const val NOW = 1_789_500_000L
 
 @OptIn(ExperimentalCoroutinesApi::class)
 class ContestViewModelsTest {
@@ -40,7 +43,8 @@ class ContestViewModelsTest {
 
     private fun listViewModel() = ContestViewModel(
         observeContestListUseCase = ObserveContestListUseCase(repository),
-        refreshContestListUseCase = RefreshContestListUseCase(repository)
+        refreshContestListUseCase = RefreshContestListUseCase(repository),
+        now = flowOf(NOW)
     )
 
     private fun detailsViewModel() = ContestDetailsViewModel(
@@ -118,5 +122,55 @@ class ContestViewModelsTest {
         val state = viewModel.uiState.value
         assertFalse(state.loading)
         assertEquals("No Data found", state.userMessage)
+    }
+
+    @Test
+    fun runningRoundsArePinnedAheadOfUpcomingOnes() = runTest(dispatcher) {
+        repository.remoteContests = Either.Right(
+            listOf(
+                contest(1, scheduled = true, startTimeSeconds = (NOW + 3_600).toInt()),
+                contest(2, startTimeSeconds = (NOW - 600).toInt()),
+            )
+        )
+
+        val viewModel = listViewModel()
+        advanceUntilIdle()
+
+        val groups = viewModel.uiState.value.groups
+        assertEquals(listOf(2), groups.live.map { it.id })
+        assertEquals(listOf(1), groups.upcoming.map { it.id })
+    }
+
+    @Test
+    fun failedRefreshOverSavedContestsCanBeRetried() = runTest(dispatcher) {
+        repository.cachedContests.value = listOf(contest(1))
+        repository.remoteContests = Either.Left(ServerConnectionResponseError())
+        val viewModel = listViewModel()
+        advanceUntilIdle()
+        assertEquals("Unable to connect to the server", viewModel.uiState.value.refreshError)
+
+        repository.remoteContests = Either.Right(listOf(contest(1), contest(2)))
+        viewModel.refreshContestList()
+        advanceUntilIdle()
+
+        val state = viewModel.uiState.value
+        assertEquals("", state.refreshError)
+        assertFalse(state.refreshing)
+        assertEquals(2, state.contestList.size)
+    }
+
+    @Test
+    fun detailsRetryLoadsTheContestAfterAFailure() = runTest(dispatcher) {
+        repository.remoteContests = Either.Left(ServerConnectionResponseError())
+        val viewModel = detailsViewModel()
+        viewModel.getContestById(7)
+        advanceUntilIdle()
+        assertEquals("Unable to connect to the server", viewModel.uiState.value.userMessage)
+
+        repository.remoteContests = Either.Right(listOf(contest(7)))
+        viewModel.getContestById(7)
+        advanceUntilIdle()
+
+        assertEquals(7, viewModel.uiState.value.contest?.id)
     }
 }

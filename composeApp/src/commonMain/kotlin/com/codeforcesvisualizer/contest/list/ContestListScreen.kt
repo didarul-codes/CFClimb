@@ -3,7 +3,9 @@ package com.codeforcesvisualizer.contest.list
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Text
+import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.State
 import androidx.compose.runtime.collectAsState
@@ -15,7 +17,8 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.sp
 import com.codeforcesvisualizer.core.EventLogger
 import com.codeforcesvisualizer.core.components.CFLoadingIndicator
-import com.codeforcesvisualizer.core.components.Center
+import com.codeforcesvisualizer.core.components.ErrorState
+import com.codeforcesvisualizer.core.components.OfflineBanner
 import com.codeforcesvisualizer.core.components.ScreenHeader
 import com.codeforcesvisualizer.core.data.UserSettingsRepository
 import com.codeforcesvisualizer.core.theme.CFThemeColors
@@ -37,6 +40,7 @@ fun ContestListScreen(
         modifier = modifier,
         state = uiState,
         username = username,
+        onRefresh = viewModel::refreshContestList,
         openContestDetails = { contestId ->
             openContestDetails(contestId)
             EventLogger.logScreenView(
@@ -47,64 +51,83 @@ fun ContestListScreen(
     )
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun ContestListScreenContent(
     modifier: Modifier = Modifier,
     state: State<ContestListUiState>,
     username: String,
+    onRefresh: () -> Unit,
     openContestDetails: (Int) -> Unit,
 ) {
     val colors = CFThemeColors.current
+    val uiState = state.value
+    val liveCount = uiState.groups.live.size
 
     Column(
         modifier = modifier
             .fillMaxSize()
             .background(colors.bg),
     ) {
-        // Terminal-style header
+        // Terminal-style header; the status only appears when there is something to say.
         ScreenHeader(
             prompt = "contests",
             title = "Contests",
-            trailing = {
-                Text(
-                    text = "● live",
-                    style = TextStyle(
-                        fontFamily = FontFamily.Monospace,
-                        fontWeight = FontWeight.Bold,
-                        fontSize = 11.sp,
-                        color = colors.green,
-                    ),
-                )
+            trailing = when {
+                liveCount > 0 -> {
+                    { HeaderStatus(text = "● $liveCount live", color = colors.green) }
+                }
+                uiState.refreshError.isNotBlank() -> {
+                    { HeaderStatus(text = "● offline", color = colors.amber) }
+                }
+                else -> null
             },
         )
 
-        // Body content
         when {
-            state.value.loading -> {
+            uiState.loading -> {
                 CFLoadingIndicator(modifier = Modifier.weight(1f))
             }
 
-            state.value.userMessage.isNotBlank() -> {
-                Center(modifier = Modifier.weight(1f)) {
-                    Text(
-                        text = state.value.userMessage,
-                        style = TextStyle(
-                            fontFamily = FontFamily.Monospace,
-                            fontSize = 13.sp,
-                            color = colors.dim,
-                        ),
-                    )
-                }
+            uiState.userMessage.isNotBlank() -> {
+                ErrorState(
+                    message = uiState.userMessage,
+                    onRetry = onRefresh,
+                    modifier = Modifier.weight(1f),
+                )
             }
 
             else -> {
-                ContestList(
+                if (uiState.refreshError.isNotBlank()) {
+                    OfflineBanner(text = "offline · showing saved contests", onRetry = onRefresh)
+                }
+                PullToRefreshBox(
+                    isRefreshing = uiState.refreshing,
+                    onRefresh = onRefresh,
                     modifier = Modifier.weight(1f),
-                    contestList = state.value.contestList,
-                    username = username,
-                    openContestDetails = openContestDetails,
-                )
+                ) {
+                    ContestList(
+                        modifier = Modifier.fillMaxSize(),
+                        groups = uiState.groups,
+                        nowEpochSeconds = uiState.nowEpochSeconds,
+                        username = username,
+                        openContestDetails = openContestDetails,
+                    )
+                }
             }
         }
     }
+}
+
+@Composable
+private fun HeaderStatus(text: String, color: androidx.compose.ui.graphics.Color) {
+    Text(
+        text = text,
+        style = TextStyle(
+            fontFamily = FontFamily.Monospace,
+            fontWeight = FontWeight.Bold,
+            fontSize = 11.sp,
+            color = color,
+        ),
+    )
 }

@@ -68,11 +68,16 @@ jobs:
           path: ~/.konan
           key: konan-${{ runner.os }}-${{ hashFiles('gradle/libs.versions.toml') }}
 
-      - name: Shared tests on the iOS simulator
-        run: ./gradlew :shared:iosSimulatorArm64Test
+      - name: Shared and app tests on the iOS simulator
+        run: ./gradlew :shared:iosSimulatorArm64Test :composeApp:iosSimulatorArm64Test
 
-      - name: Link the Compose framework
-        run: ./gradlew :composeApp:linkDebugFrameworkIosSimulatorArm64
+      # Builds the Kotlin framework through the Xcode build phase, then the app and widget extension.
+      # arm64 only: there is no Kotlin iosX64 target, so an x86_64 slice has no framework to embed.
+      - name: Build the iOS app and widget
+        run: >
+          xcodebuild -project iosApp/iosApp.xcodeproj -scheme iosApp -configuration Debug
+          -sdk iphonesimulator -destination 'generic/platform=iOS Simulator'
+          ARCHS=arm64 CODE_SIGNING_ALLOWED=NO build
 
       - name: Upload reports
         if: failure()

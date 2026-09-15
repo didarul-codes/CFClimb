@@ -37,6 +37,7 @@ import com.codeforcesvisualizer.core.components.Center
 import com.codeforcesvisualizer.core.components.HeightSpacer
 import com.codeforcesvisualizer.core.components.RatingLineChart
 import com.codeforcesvisualizer.core.components.RatingPoint
+import com.codeforcesvisualizer.core.components.RetryButton
 import com.codeforcesvisualizer.core.components.RatingSeriesData
 import com.codeforcesvisualizer.core.components.RadarSeries
 import com.codeforcesvisualizer.core.components.ScreenHeader
@@ -95,14 +96,20 @@ fun CompareHandlesScreen(
         if (errorMessage.isNotBlank()) {
             item {
                 Center(modifier = Modifier.padding(vertical = 16.dp)) {
-                    Text(
-                        text = errorMessage,
-                        style = TextStyle(
-                            fontFamily = FontFamily.Monospace,
-                            fontSize = 12.sp,
-                            color = colors.red,
-                        ),
-                    )
+                    Column(
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                    ) {
+                        Text(
+                            text = errorMessage,
+                            style = TextStyle(
+                                fontFamily = FontFamily.Monospace,
+                                fontSize = 12.sp,
+                                color = colors.red,
+                            ),
+                        )
+                        HeightSpacer(height = 10.dp)
+                        RetryButton(onClick = { viewModel.compare(handleOne, handleTwo) })
+                    }
                 }
             }
         }

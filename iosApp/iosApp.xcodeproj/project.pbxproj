@@ -6,8 +6,37 @@
 	objectVersion = 77;
 	objects = {
 
+/* Begin PBXBuildFile section */
+		A1C1F000000000000000000C /* CFClimbWidgetExtension.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = A1C1F0000000000000000001 /* CFClimbWidgetExtension.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
+/* End PBXBuildFile section */
+
+/* Begin PBXContainerItemProxy section */
+		A1C1F000000000000000000E /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 29F243B22EA7C6300069A964 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = A1C1F0000000000000000004;
+			remoteInfo = CFClimbWidgetExtension;
+		};
+/* End PBXContainerItemProxy section */
+
+/* Begin PBXCopyFilesBuildPhase section */
+		A1C1F000000000000000000B /* Embed Foundation Extensions */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "";
+			dstSubfolderSpec = 13;
+			files = (
+				A1C1F000000000000000000C /* CFClimbWidgetExtension.appex in Embed Foundation Extensions */,
+			);
+			name = "Embed Foundation Extensions";
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXCopyFilesBuildPhase section */
+
 /* Begin PBXFileReference section */
 		29F243BA2EA7C6300069A964 /* iosApp.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = iosApp.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		A1C1F0000000000000000001 /* CFClimbWidgetExtension.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = CFClimbWidgetExtension.appex; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
@@ -15,8 +44,17 @@
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
 				Info.plist,
+				iosApp.entitlements,
 			);
 			target = 29F243B92EA7C6300069A964 /* iosApp */;
+		};
+		A1C1F0000000000000000003 /* Exceptions for "CFClimbWidget" folder in "CFClimbWidgetExtension" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				CFClimbWidget.entitlements,
+				Info.plist,
+			);
+			target = A1C1F0000000000000000004 /* CFClimbWidgetExtension */;
 		};
 /* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
 
@@ -29,10 +67,25 @@
 			path = iosApp;
 			sourceTree = "<group>";
 		};
+		A1C1F0000000000000000002 /* CFClimbWidget */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			exceptions = (
+				A1C1F0000000000000000003 /* Exceptions for "CFClimbWidget" folder in "CFClimbWidgetExtension" target */,
+			);
+			path = CFClimbWidget;
+			sourceTree = "<group>";
+		};
 /* End PBXFileSystemSynchronizedRootGroup section */
 
 /* Begin PBXFrameworksBuildPhase section */
 		29F243B72EA7C6300069A964 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		A1C1F0000000000000000006 /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
@@ -46,6 +99,7 @@
 			isa = PBXGroup;
 			children = (
 				29F243BC2EA7C6300069A964 /* iosApp */,
+				A1C1F0000000000000000002 /* CFClimbWidget */,
 				29F243BB2EA7C6300069A964 /* Products */,
 			);
 			sourceTree = "<group>";
@@ -54,6 +108,7 @@
 			isa = PBXGroup;
 			children = (
 				29F243BA2EA7C6300069A964 /* iosApp.app */,
+				A1C1F0000000000000000001 /* CFClimbWidgetExtension.appex */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -69,10 +124,12 @@
 				29F243B62EA7C6300069A964 /* Sources */,
 				29F243B72EA7C6300069A964 /* Frameworks */,
 				29F243B82EA7C6300069A964 /* Resources */,
+				A1C1F000000000000000000B /* Embed Foundation Extensions */,
 			);
 			buildRules = (
 			);
 			dependencies = (
+				A1C1F000000000000000000D /* PBXTargetDependency */,
 			);
 			fileSystemSynchronizedGroups = (
 				29F243BC2EA7C6300069A964 /* iosApp */,
@@ -83,6 +140,28 @@
 			productName = iosApp;
 			productReference = 29F243BA2EA7C6300069A964 /* iosApp.app */;
 			productType = "com.apple.product-type.application";
+		};
+		A1C1F0000000000000000004 /* CFClimbWidgetExtension */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = A1C1F0000000000000000008 /* Build configuration list for PBXNativeTarget "CFClimbWidgetExtension" */;
+			buildPhases = (
+				A1C1F0000000000000000005 /* Sources */,
+				A1C1F0000000000000000006 /* Frameworks */,
+				A1C1F0000000000000000007 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			fileSystemSynchronizedGroups = (
+				A1C1F0000000000000000002 /* CFClimbWidget */,
+			);
+			name = CFClimbWidgetExtension;
+			packageProductDependencies = (
+			);
+			productName = CFClimbWidgetExtension;
+			productReference = A1C1F0000000000000000001 /* CFClimbWidgetExtension.appex */;
+			productType = "com.apple.product-type.app-extension";
 		};
 /* End PBXNativeTarget section */
 
@@ -95,6 +174,9 @@
 				LastUpgradeCheck = 2600;
 				TargetAttributes = {
 					29F243B92EA7C6300069A964 = {
+						CreatedOnToolsVersion = 26.0;
+					};
+					A1C1F0000000000000000004 = {
 						CreatedOnToolsVersion = 26.0;
 					};
 				};
@@ -114,12 +196,20 @@
 			projectRoot = "";
 			targets = (
 				29F243B92EA7C6300069A964 /* iosApp */,
+				A1C1F0000000000000000004 /* CFClimbWidgetExtension */,
 			);
 		};
 /* End PBXProject section */
 
 /* Begin PBXResourcesBuildPhase section */
 		29F243B82EA7C6300069A964 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		A1C1F0000000000000000007 /* Resources */ = {
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
@@ -157,7 +247,22 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		A1C1F0000000000000000005 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXSourcesBuildPhase section */
+
+/* Begin PBXTargetDependency section */
+		A1C1F000000000000000000D /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = A1C1F0000000000000000004 /* CFClimbWidgetExtension */;
+			targetProxy = A1C1F000000000000000000E /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
 
 /* Begin XCBuildConfiguration section */
 		29F243C32EA7C6310069A964 /* Debug */ = {
@@ -304,6 +409,7 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_ENTITLEMENTS = iosApp/iosApp.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 4;
 				DEVELOPMENT_TEAM = 8F7KFNGML2;
@@ -311,9 +417,9 @@
 				ENABLE_USER_SCRIPT_SANDBOXING = NO;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = iosApp/Info.plist;
-				INFOPLIST_KEY_CFBundleDisplayName = CFViz;
+				INFOPLIST_KEY_CFBundleDisplayName = CFClimb;
 				INFOPLIST_KEY_ITSAppUsesNonExemptEncryption = NO;
-				INFOPLIST_KEY_NSCalendarsUsageDescription = "$(PRODUCT_NAME) wants to access calender to add event for future contests";
+				INFOPLIST_KEY_NSCalendarsUsageDescription = "Adds the contests you choose to your calendar.";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
@@ -341,6 +447,7 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_ENTITLEMENTS = iosApp/iosApp.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 4;
 				DEVELOPMENT_TEAM = 8F7KFNGML2;
@@ -348,9 +455,9 @@
 				ENABLE_USER_SCRIPT_SANDBOXING = NO;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = iosApp/Info.plist;
-				INFOPLIST_KEY_CFBundleDisplayName = CFViz;
+				INFOPLIST_KEY_CFBundleDisplayName = CFClimb;
 				INFOPLIST_KEY_ITSAppUsesNonExemptEncryption = NO;
-				INFOPLIST_KEY_NSCalendarsUsageDescription = "$(PRODUCT_NAME) wants to access calender to add event for future contests";
+				INFOPLIST_KEY_NSCalendarsUsageDescription = "Adds the contests you choose to your calendar.";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
@@ -373,6 +480,66 @@
 			};
 			name = Release;
 		};
+		A1C1F0000000000000000009 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_ENTITLEMENTS = CFClimbWidget/CFClimbWidget.entitlements;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 4;
+				DEVELOPMENT_TEAM = 8F7KFNGML2;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = CFClimbWidget/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = CFClimbWidget;
+				INFOPLIST_KEY_NSHumanReadableCopyright = "";
+				IPHONEOS_DEPLOYMENT_TARGET = 18.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@executable_path/../../Frameworks",
+				);
+				MARKETING_VERSION = 1.0.0;
+				OTHER_LDFLAGS = "";
+				PRODUCT_BUNDLE_IDENTIFIER = com.codeforcesvisualizer.iosApp.CFClimbWidget;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SKIP_INSTALL = YES;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "DEBUG $(inherited)";
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+			};
+			name = Debug;
+		};
+		A1C1F000000000000000000A /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_ENTITLEMENTS = CFClimbWidget/CFClimbWidget.entitlements;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 4;
+				DEVELOPMENT_TEAM = 8F7KFNGML2;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = CFClimbWidget/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = CFClimbWidget;
+				INFOPLIST_KEY_NSHumanReadableCopyright = "";
+				IPHONEOS_DEPLOYMENT_TARGET = 18.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@executable_path/../../Frameworks",
+				);
+				MARKETING_VERSION = 1.0.0;
+				OTHER_LDFLAGS = "";
+				PRODUCT_BUNDLE_IDENTIFIER = com.codeforcesvisualizer.iosApp.CFClimbWidget;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SKIP_INSTALL = YES;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				SWIFT_COMPILATION_MODE = wholemodule;
+				VALIDATE_PRODUCT = YES;
+			};
+			name = Release;
+		};
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
@@ -390,6 +557,15 @@
 			buildConfigurations = (
 				29F243C62EA7C6310069A964 /* Debug */,
 				29F243C72EA7C6310069A964 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		A1C1F0000000000000000008 /* Build configuration list for PBXNativeTarget "CFClimbWidgetExtension" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				A1C1F0000000000000000009 /* Debug */,
+				A1C1F000000000000000000A /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;

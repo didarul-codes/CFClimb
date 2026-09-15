@@ -42,10 +42,15 @@ import coil3.ImageLoader
 import coil3.compose.setSingletonImageLoaderFactory
 import coil3.network.ktor3.KtorNetworkFetcherFactory
 import com.codeforcesvisualizer.core.EventLogger
+import com.codeforcesvisualizer.core.links.CodeforcesLink
+import com.codeforcesvisualizer.core.links.DeepLinks
+import com.codeforcesvisualizer.core.ratingalerts.RatingChangeAlerts
+import com.codeforcesvisualizer.navigation.LeafScreen
 import com.codeforcesvisualizer.core.reminders.ContestReminders
 import com.codeforcesvisualizer.core.theme.CFTheme
 import com.codeforcesvisualizer.core.theme.CFThemeColors
 import com.codeforcesvisualizer.core.theme.SystemBarsAppearance
+import com.codeforcesvisualizer.core.widget.HomeWidgets
 import com.codeforcesvisualizer.navigation.AppNavigator
 import com.codeforcesvisualizer.navigation.Screen
 import com.codeforcesvisualizer.preference.ThemeManager
@@ -86,6 +91,16 @@ private fun Home(
     LaunchedEffect(contestReminders) {
         contestReminders.keepScheduled()
     }
+    // Keeps the background rating check registered while alerts are on.
+    val ratingChangeAlerts = koinInject<RatingChangeAlerts>()
+    LaunchedEffect(ratingChangeAlerts) {
+        ratingChangeAlerts.keepScheduled()
+    }
+    // Redraws home screen widgets when the contest list, handle or rating changes.
+    val homeWidgets = koinInject<HomeWidgets>()
+    LaunchedEffect(homeWidgets) {
+        homeWidgets.keepUpdated()
+    }
 
     SystemBarsAppearance(themeMode = themeModeUiState.themeMode, isDarkTheme = isDarkTheme)
 
@@ -114,7 +129,26 @@ private fun Home(
                 navController = navController,
                 themeManager = themeManager
             )
+
+            // After AppNavigator, so the navigation graph exists when a link opened the app.
+            OpenPendingLinks(navController)
         }
+    }
+}
+
+/** Shows Codeforces links opened from outside the app: shared URLs, browser links, cfclimb:// links. */
+@Composable
+private fun OpenPendingLinks(navController: NavController) {
+    val deepLinks = koinInject<DeepLinks>()
+    val pendingLink by deepLinks.pending.collectAsState()
+    LaunchedEffect(pendingLink) {
+        val link = pendingLink ?: return@LaunchedEffect
+        val route = when (link) {
+            is CodeforcesLink.Contest -> LeafScreen.ContestDetails.createRoute(Screen.Home, link.contestId)
+            is CodeforcesLink.Profile -> LeafScreen.Profile.createRoute(Screen.Profile, link.handle)
+        }
+        navController.navigate(route)
+        deepLinks.consume(link)
     }
 }
 

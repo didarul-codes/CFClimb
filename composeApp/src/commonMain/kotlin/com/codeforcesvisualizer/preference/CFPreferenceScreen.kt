@@ -38,8 +38,11 @@ import com.codeforcesvisualizer.core.components.CFCard
 import com.codeforcesvisualizer.core.components.HeightSpacer
 import com.codeforcesvisualizer.core.components.ScreenHeader
 import com.codeforcesvisualizer.core.data.UserSettingsRepository
+import com.codeforcesvisualizer.core.ratingalerts.RatingAlertToggle
 import com.codeforcesvisualizer.core.reminders.ReminderSettingsCard
 import com.codeforcesvisualizer.core.theme.CFThemeColors
+import com.codeforcesvisualizer.core.links.rememberLinkHandlingSetting
+import com.codeforcesvisualizer.core.widget.rememberAddWidgetAction
 import com.codeforcesvisualizer.shared.domain.entity.UiThemeMode
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -57,6 +60,8 @@ fun PreferenceScreen(
     val colors = CFThemeColors.current
     val themeModeUiState by themeManager.themeModeFlow.collectAsState()
     val rateAppHandler = rememberRateAppHandler()
+    val addWidget = rememberAddWidgetAction()
+    val linkSetting = rememberLinkHandlingSetting()
     var showStoreError by remember { mutableStateOf(false) }
     val userSettingsRepository = koinInject<UserSettingsRepository>()
     val savedUsername by userSettingsRepository.username.collectAsState(initial = "")
@@ -143,6 +148,8 @@ fun PreferenceScreen(
                                 .padding(vertical = 4.dp),
                         )
                     }
+                    HeightSpacer(height = 12.dp)
+                    RatingAlertToggle(handle = savedUsername)
                 }
             }
         }
@@ -203,6 +210,24 @@ fun PreferenceScreen(
                             )
                         }
                     }
+                    if (linkSetting != null) {
+                        HorizontalDivider(color = colors.border, thickness = 1.dp)
+                        PreferenceRow(
+                            label = "open codeforces links",
+                            value = if (linkSetting.enabled) "in app" else "set up",
+                            isAction = true,
+                            onClick = linkSetting.open,
+                        )
+                    }
+                    if (addWidget != null) {
+                        HorizontalDivider(color = colors.border, thickness = 1.dp)
+                        PreferenceRow(
+                            label = "home screen widget",
+                            value = "add",
+                            isAction = true,
+                            onClick = addWidget,
+                        )
+                    }
                     HorizontalDivider(color = colors.border, thickness = 1.dp)
                     PreferenceRow(
                         label = "theme mode",
@@ -215,18 +240,31 @@ fun PreferenceScreen(
 
         item { HeightSpacer(height = 24.dp) }
 
-        // Build info
+        // Build info and the disclaimer store listings require.
         item {
-            Text(
-                text = "codeforces-visualizer v${rateAppHandler.versionName}",
-                modifier = Modifier.fillMaxWidth(),
-                style = TextStyle(
-                    fontFamily = FontFamily.Monospace,
-                    fontSize = 10.sp,
-                    color = colors.dim,
-                ),
-                textAlign = TextAlign.Center,
-            )
+            Column(modifier = Modifier.fillMaxWidth()) {
+                Text(
+                    text = "cfclimb v${rateAppHandler.versionName}",
+                    modifier = Modifier.fillMaxWidth(),
+                    style = TextStyle(
+                        fontFamily = FontFamily.Monospace,
+                        fontSize = 10.sp,
+                        color = colors.dim,
+                    ),
+                    textAlign = TextAlign.Center,
+                )
+                HeightSpacer(height = 4.dp)
+                Text(
+                    text = "Unofficial. Not affiliated with Codeforces.",
+                    modifier = Modifier.fillMaxWidth(),
+                    style = TextStyle(
+                        fontFamily = FontFamily.Monospace,
+                        fontSize = 10.sp,
+                        color = colors.dim,
+                    ),
+                    textAlign = TextAlign.Center,
+                )
+            }
         }
 
         item { HeightSpacer(height = 24.dp) }

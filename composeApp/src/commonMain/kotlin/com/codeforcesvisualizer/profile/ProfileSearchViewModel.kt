@@ -3,6 +3,8 @@ package com.codeforcesvisualizer.profile
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.codeforcesvisualizer.core.data.RecentSearchRepository
+import com.codeforcesvisualizer.core.links.CodeforcesLink
+import com.codeforcesvisualizer.core.links.parseCodeforcesLink
 import com.codeforcesvisualizer.shared.core.AppError
 import com.codeforcesvisualizer.shared.core.Either
 import com.codeforcesvisualizer.shared.domain.entity.UserProfile
@@ -80,8 +82,11 @@ class ProfileSearchViewModel(
      * Shows the saved profile for [handle] at once, then refreshes it. Starting a new search
      * cancels requests still queued for the previous one.
      */
-    fun search(handle: String) {
+    fun search(query: String) {
+        // A pasted profile link works as well as a handle.
+        val handle = (parseCodeforcesLink(query) as? CodeforcesLink.Profile)?.handle ?: query.trim()
         if (handle.isBlank()) return
+        _searchTextState.value = handle
         searchJob?.cancel()
         viewModelScope.launch { recentSearchRepository.addSearch(handle) }
 

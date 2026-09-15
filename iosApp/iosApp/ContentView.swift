@@ -21,6 +21,10 @@ struct ContentView: View {
     var body: some View {
         ComposeView()
                     .ignoresSafeArea()
+                    // cfclimb://profile/{handle} and cfclimb://contest/{id}
+                    .onOpenURL { url in
+                        _ = LinkHandlingSetting_iosKt.openLink(url: url.absoluteString)
+                    }
     }
 }
 

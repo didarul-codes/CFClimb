@@ -39,7 +39,7 @@ import com.codeforcesvisualizer.core.EventLogger
 import com.codeforcesvisualizer.core.components.CFCard
 import com.codeforcesvisualizer.core.components.CalendarToast
 import com.codeforcesvisualizer.core.components.CFLoadingIndicator
-import com.codeforcesvisualizer.core.components.Center
+import com.codeforcesvisualizer.core.components.ErrorState
 import com.codeforcesvisualizer.core.components.Chip
 import com.codeforcesvisualizer.core.components.CountdownTimer
 import com.codeforcesvisualizer.core.components.HeightSpacer
@@ -83,16 +83,11 @@ fun ContestDetailsScreen(
             }
 
             uiState.userMessage.isNotBlank() -> {
-                Center(modifier = Modifier.weight(1f)) {
-                    Text(
-                        text = uiState.userMessage,
-                        style = TextStyle(
-                            fontFamily = FontFamily.Monospace,
-                            fontSize = 13.sp,
-                            color = colors.dim,
-                        ),
-                    )
-                }
+                ErrorState(
+                    message = uiState.userMessage,
+                    onRetry = { viewModel.getContestById(contestId) },
+                    modifier = Modifier.weight(1f),
+                )
             }
 
             uiState.contest != null -> {

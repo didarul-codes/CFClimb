@@ -31,6 +31,8 @@ room = "2.8.5"
 # Matches Room 2.8.5. SQLite 2.7.x iOS klibs are built with Kotlin 2.3 and can't be read by Kotlin 2.2.
 sqliteBundled = "2.6.2"
 turbine = "1.2.1"
+work = "2.10.5"
+glance = "1.2.0"
 kotlinxDatetime = "0.6.1"
 kotlinxSerialization = "1.7.3"
 kspVersion = "2.2.10-2.0.2"
@@ -95,6 +97,10 @@ kotlin-test = { group = "org.jetbrains.kotlin", name = "kotlin-test", version.re
 kotlinx-coroutines-test = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-test", version.ref = "kotlinxCoroutines" }
 io-ktor-client-mock = { module = "io.ktor:ktor-client-mock", version.ref = "ktor" }
 turbine = { module = "app.cash.turbine:turbine", version.ref = "turbine" }
+androidx-work-runtime-ktx = { module = "androidx.work:work-runtime-ktx", version.ref = "work" }
+androidx-work-testing = { module = "androidx.work:work-testing", version.ref = "work" }
+androidx-glance-appwidget = { module = "androidx.glance:glance-appwidget", version.ref = "glance" }
+androidx-glance-appwidget-testing = { module = "androidx.glance:glance-appwidget-testing", version.ref = "glance" }
 androidx-room-runtime = { module = "androidx.room:room-runtime", version.ref = "room" }
 androidx-room-compiler = { module = "androidx.room:room-compiler", version.ref = "room" }
 androidx-sqlite-bundled = { module = "androidx.sqlite:sqlite-bundled", version.ref = "sqliteBundled" }

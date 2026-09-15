@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">Codeforces Companion</string>
+    <string name="app_name">CFClimb</string>
     <string name="hanldles_can_not_be_empty">Handles can not be empty</string>
     <string name="compare_users">Compare Users</string>
 

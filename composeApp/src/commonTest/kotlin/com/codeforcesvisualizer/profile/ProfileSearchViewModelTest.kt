@@ -138,6 +138,17 @@ class ProfileSearchViewModelTest {
         }
     }
 
+    @Test
+    fun pastedProfileLinkSearchesThatHandle() = runTest(dispatcher) {
+        givenTourist()
+
+        viewModel.search("https://codeforces.com/profile/tourist?locale=en")
+        advanceUntilIdle()
+
+        assertEquals("tourist", viewModel.searchTextState.value)
+        assertEquals(3301, viewModel.userInfoState.value.user?.rating)
+    }
+
     private fun givenTourist() {
         repository.users["tourist"] = Either.Right(user("tourist", rating = 3301))
         repository.ratings["tourist"] = Either.Right(listOf(ratingChange(0, 3301)))

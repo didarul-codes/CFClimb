@@ -13,9 +13,13 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -32,6 +36,8 @@ import com.codeforcesvisualizer.core.EventLogger
 import com.codeforcesvisualizer.core.components.RecentSearchesSection
 import com.codeforcesvisualizer.core.components.CFCard
 import com.codeforcesvisualizer.core.components.CFLoadingIndicator
+import com.codeforcesvisualizer.core.components.ErrorState
+import com.codeforcesvisualizer.core.components.OfflineBanner
 import com.codeforcesvisualizer.core.components.Chip
 import com.codeforcesvisualizer.core.components.DifficultyBucket
 import com.codeforcesvisualizer.core.components.DifficultyHistogram
@@ -74,6 +80,8 @@ fun ProfileSearchScreen(
     modifier: Modifier = Modifier,
     onNavigateBack: () -> Unit,
     onOpenWebSite: (String) -> Unit,
+    /** Opens this profile straight away, for example from a shared link. */
+    initialHandle: String = "",
     viewModel: ProfileSearchViewModel = koinViewModel()
 ) {
     val searchTextState by viewModel.searchTextState.collectAsState()
@@ -82,6 +90,15 @@ fun ProfileSearchScreen(
     val userRatingsUiState by viewModel.userRatingState.collectAsState()
     val recentSearches by viewModel.recentSearches.collectAsState()
     val showingSavedData by viewModel.showingSavedData.collectAsState()
+
+    // Searches once per link, not again after a configuration change.
+    var openedInitialHandle by rememberSaveable(initialHandle) { mutableStateOf(false) }
+    LaunchedEffect(initialHandle) {
+        if (initialHandle.isNotBlank() && !openedInitialHandle) {
+            openedInitialHandle = true
+            viewModel.search(initialHandle)
+        }
+    }
 
     val colors = CFThemeColors.current
     val showRecent = userInfoUiState.user == null && !userInfoUiState.loading
@@ -102,7 +119,8 @@ fun ProfileSearchScreen(
                 EventLogger.logEvent(event = "Search User")
             },
             onClearText = { viewModel.onSearchTextChanged("") },
-            onNavigateBack = onNavigateBack
+            onNavigateBack = onNavigateBack,
+            requestFocusOnStart = initialHandle.isBlank()
         )
 
         if (showRecent) {
@@ -117,15 +135,11 @@ fun ProfileSearchScreen(
             )
         }
 
-        if (showingSavedData) {
-            Text(
+        val savedUser = userInfoUiState.user
+        if (showingSavedData && savedUser != null) {
+            OfflineBanner(
                 text = "offline · showing saved data",
-                style = TextStyle(
-                    fontFamily = FontFamily.Monospace,
-                    fontSize = 11.sp,
-                    color = colors.amber
-                ),
-                modifier = Modifier.padding(horizontal = 18.dp, vertical = 6.dp)
+                onRetry = { viewModel.search(savedUser.handle) },
             )
         }
 
@@ -133,7 +147,8 @@ fun ProfileSearchScreen(
             userInfoUiState = userInfoUiState,
             userStatusUiState = userStatusUiState,
             userRatingsUiState = userRatingsUiState,
-            onOpenWebSite = onOpenWebSite
+            onOpenWebSite = onOpenWebSite,
+            onRetry = { viewModel.search(searchTextState) }
         )
     }
 }
@@ -144,7 +159,8 @@ private fun ProfileContent(
     userInfoUiState: UserInfoUiState,
     userStatusUiState: UserStatusUiState,
     userRatingsUiState: UserRatingUiState,
-    onOpenWebSite: (String) -> Unit
+    onOpenWebSite: (String) -> Unit,
+    onRetry: () -> Unit
 ) {
     val colors = CFThemeColors.current
     val isLoading = userInfoUiState.loading || userStatusUiState.loading || userRatingsUiState.loading
@@ -159,19 +175,11 @@ private fun ProfileContent(
     }
 
     if (hasError && user == null) {
-        Box(
+        ErrorState(
+            message = userInfoUiState.userMessage,
+            onRetry = onRetry,
             modifier = Modifier.fillMaxSize(),
-            contentAlignment = Alignment.Center
-        ) {
-            Text(
-                text = userInfoUiState.userMessage,
-                style = TextStyle(
-                    fontFamily = FontFamily.Monospace,
-                    fontSize = 13.sp,
-                    color = colors.dim
-                )
-            )
-        }
+        )
         return
     }
 

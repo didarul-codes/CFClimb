@@ -22,6 +22,9 @@ fun initKoin() {
             useCaseModule,
             viewModelModule,
             reminderModule,
+            ratingAlertModule,
+            widgetModule,
+            linkModule,
             platformModule
         )
     }

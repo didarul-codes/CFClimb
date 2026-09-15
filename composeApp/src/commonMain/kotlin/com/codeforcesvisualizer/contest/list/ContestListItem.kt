@@ -26,6 +26,7 @@ import com.codeforcesvisualizer.core.components.HeightSpacer
 import com.codeforcesvisualizer.core.theme.CFThemeColors
 import com.codeforcesvisualizer.core.utils.convertTimeStampToDateString
 import com.codeforcesvisualizer.core.utils.convertToHMS
+import com.codeforcesvisualizer.core.utils.formatTimeUntil
 import com.codeforcesvisualizer.shared.domain.entity.Contest
 import kotlinx.datetime.Clock
 
@@ -36,6 +37,8 @@ internal fun ContestListItem(
     contest: Contest,
     isUpcoming: Boolean,
     onOpenContest: (Int) -> Unit,
+    /** Set for running rounds, for example "ends in 1h 20m". */
+    liveLabel: String? = null,
 ) {
     val colors = CFThemeColors.current
     val shape = RoundedCornerShape(12.dp)
@@ -95,7 +98,9 @@ internal fun ContestListItem(
                 val kind = contest.kind ?: "Codeforces"
                 Chip(text = kind, color = colors.dim, subtle = true)
 
-                if (isUpcoming) {
+                if (liveLabel != null) {
+                    Chip(text = "● live", color = colors.green)
+                } else if (isUpcoming) {
                     Chip(text = "scheduled", color = colors.green, subtle = true)
                 }
             }
@@ -106,7 +111,17 @@ internal fun ContestListItem(
             horizontalAlignment = Alignment.End,
             modifier = Modifier.padding(start = 8.dp),
         ) {
-            if (isUpcoming) {
+            if (liveLabel != null) {
+                Text(
+                    text = liveLabel,
+                    style = TextStyle(
+                        fontFamily = FontFamily.Monospace,
+                        fontSize = 11.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = colors.green,
+                    ),
+                )
+            } else if (isUpcoming) {
                 val timeUntil = formatTimeUntil(contest.startTimeSeconds)
                 Text(
                     text = "in $timeUntil",
@@ -143,16 +158,5 @@ internal fun extractDivision(name: String): String? {
 /**
  * Format time until a contest starts as a human-readable short string.
  */
-internal fun formatTimeUntil(startTimeSeconds: Int): String {
-    val now = Clock.System.now().epochSeconds
-    val diff = startTimeSeconds.toLong() - now
-    if (diff <= 0) return "now"
-    val days = diff / 86400
-    val hours = (diff % 86400) / 3600
-    val minutes = (diff % 3600) / 60
-    return when {
-        days > 0 -> "${days}d ${hours}h"
-        hours > 0 -> "${hours}h ${minutes}m"
-        else -> "${minutes}m"
-    }
-}
+internal fun formatTimeUntil(startTimeSeconds: Int): String =
+    formatTimeUntil(startTimeSeconds.toLong(), Clock.System.now().epochSeconds)

@@ -131,9 +131,11 @@ val RankTiers = listOf(
 
 data class RankTier(val min: Int, val max: Int, val name: String, val color: Color)
 
-fun rankColorFor(rating: Int): Color {
-    return RankTiers.find { rating in it.min..it.max }?.color ?: RankTiers[0].color
+fun rankTierFor(rating: Int): RankTier {
+    return RankTiers.find { rating in it.min..it.max } ?: RankTiers[0]
 }
+
+fun rankColorFor(rating: Int): Color = rankTierFor(rating).color
 
 val VerdictColors = mapOf(
     "AC" to Color(0xFF36D399),

@@ -29,10 +29,15 @@ private fun NavGraphBuilder.addProfileSearchScreen(
     root: Screen
 ) {
     composable(
-        route = LeafScreen.Profile.createRoute(root)
-    ) {
+        route = LeafScreen.Profile.createRoute(root),
+        arguments = listOf(navArgument("handle") {
+            defaultValue = ""
+            type = NavType.StringType
+        })
+    ) { backStackEntry ->
         ProfileSearchScreen(
             modifier = Modifier,
+            initialHandle = backStackEntry.arguments?.read { getString("handle") } ?: "",
             onNavigateBack = { navController.navigateUp() },
             onOpenWebSite = { problem ->
                 val (contestId, problemIndex) = problem.split("-")

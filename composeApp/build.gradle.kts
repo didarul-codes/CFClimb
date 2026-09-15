@@ -34,6 +34,8 @@ kotlin {
             implementation(libs.androidx.activity.compose)
             implementation(libs.compose.webview)
             implementation(libs.firebase.analytics)
+            implementation(libs.androidx.work.runtime.ktx)
+            implementation(libs.androidx.glance.appwidget)
         }
         commonMain.dependencies {
             implementation(project(":shared"))
@@ -81,6 +83,8 @@ kotlin {
             implementation(libs.roborazzi.compose)
             implementation(libs.roborazzi.junit.rule)
             implementation(libs.androidx.compose.ui.test.junit4)
+            implementation(libs.androidx.work.testing)
+            implementation(libs.androidx.glance.appwidget.testing)
         }
     }
 }

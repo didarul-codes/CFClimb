@@ -45,6 +45,8 @@ fun SearchBar(
     onSearch: (() -> Unit)? = null,
     onClearText: () -> Unit,
     onNavigateBack: () -> Unit,
+    /** Off when the screen opens with a result already, so the keyboard doesn't cover it. */
+    requestFocusOnStart: Boolean = true,
 ) {
     val focusRequester = remember { FocusRequester() }
     val keyboardController = LocalSoftwareKeyboardController.current
@@ -71,7 +73,7 @@ fun SearchBar(
     )
 
     LaunchedEffect(Unit) {
-        focusRequester.requestFocus()
+        if (requestFocusOnStart) focusRequester.requestFocus()
     }
 }
 
