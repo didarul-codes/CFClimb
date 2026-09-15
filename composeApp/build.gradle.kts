@@ -8,6 +8,7 @@ plugins {
     alias(libs.plugins.google.services)
     alias(libs.plugins.firebase.crashlytics)
     alias(libs.plugins.composeCompiler)
+    alias(libs.plugins.roborazzi)
 }
 
 kotlin {
@@ -67,6 +68,17 @@ kotlin {
         }
         commonTest.dependencies {
             implementation(libs.kotlin.test)
+            implementation(libs.kotlinx.coroutines.test)
+            implementation(libs.turbine)
+        }
+        androidUnitTest.dependencies {
+            implementation(libs.junit)
+            implementation(libs.androidx.test.ext.junit)
+            implementation(libs.robolectric)
+            implementation(libs.roborazzi)
+            implementation(libs.roborazzi.compose)
+            implementation(libs.roborazzi.junit.rule)
+            implementation(libs.androidx.compose.ui.test.junit4)
         }
     }
 }
@@ -78,7 +90,7 @@ android {
         applicationId = "com.codeforcesvisualizer"
         minSdk = libs.versions.minSdk.get().toInt()
         targetSdk = compileSdk
-        
+
         versionCode = libs.versions.versionCode.get().toInt()
         versionName = libs.versions.versionName.get()
     }
@@ -107,8 +119,17 @@ android {
         compose = true
     }
 
+    testOptions {
+        unitTests {
+            // Robolectric screenshot tests need the app's resources and manifest.
+            isIncludeAndroidResources = true
+        }
+    }
+
     namespace = "com.codeforcesvisualizer"
 }
 
 dependencies {
+    // Provides the activity that the Compose test rule launches in screenshot tests.
+    debugImplementation(libs.androidx.compose.ui.test.manifest)
 }

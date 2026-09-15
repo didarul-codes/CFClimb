@@ -8,6 +8,8 @@
 /captures
 .externalNativeBuild
 screenshots/
+# Screenshot test baselines are compared in CI, so they must be committed.
+!composeApp/src/androidUnitTest/screenshots/
 keys/
 *.xcuserstate
 composeApp/release

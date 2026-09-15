@@ -5,6 +5,8 @@ import com.codeforcesvisualizer.shared.data.config.NETWORK_CONNECT_TIMEOUT
 import com.codeforcesvisualizer.shared.data.config.NETWORK_READ_TIMEOUT
 import com.codeforcesvisualizer.shared.data.config.NETWORK_WRITE_TIMEOUT
 import io.ktor.client.HttpClient
+import io.ktor.client.HttpClientConfig
+import io.ktor.client.engine.HttpClientEngine
 import io.ktor.client.plugins.HttpTimeout
 import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
 import io.ktor.client.plugins.defaultRequest
@@ -20,9 +22,10 @@ object ApiClient {
     /**
      * @param enableLogging logs request and response bodies. Keep it off in release builds:
      * `user.status` responses for active users are hundreds of kilobytes.
+     * @param engine overrides the platform engine; tests pass a `MockEngine`.
      */
-    fun getHttpClient(enableLogging: Boolean): HttpClient {
-        return HttpClient {
+    fun getHttpClient(enableLogging: Boolean, engine: HttpClientEngine? = null): HttpClient {
+        val config: HttpClientConfig<*>.() -> Unit = {
             expectSuccess = false
 
             install(HttpTimeout) {
@@ -54,5 +57,6 @@ object ApiClient {
                 }
             }
         }
+        return if (engine != null) HttpClient(engine, config) else HttpClient(config)
     }
 }
