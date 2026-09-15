@@ -15,10 +15,10 @@ import org.koin.dsl.module
 val viewModelModule = module {
     single { RecentSearchRepository(get()) }
     single { UserSettingsRepository(get()) }
-    factory { ContestViewModel(get()) }
+    factory { ContestViewModel(get(), get()) }
     factory { ContestSearchViewModel(get()) }
-    factory { ContestDetailsViewModel(get()) }
-    factory { ProfileSearchViewModel(get(), get(), get(), get()) }
+    factory { ContestDetailsViewModel(get(), get()) }
+    factory { ProfileSearchViewModel(get(), get(), get()) }
     factory { CompareHandlesViewModel(get(), get(), get()) }
     factory<ThemeManager> { ThemeManagerViewModel(get(), get()) }
     factory { PreferenceViewModel() }

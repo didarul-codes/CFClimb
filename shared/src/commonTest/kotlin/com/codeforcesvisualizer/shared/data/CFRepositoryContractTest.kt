@@ -1,39 +1,34 @@
 package com.codeforcesvisualizer.shared.data
 
-import com.codeforcesvisualizer.shared.core.AppError
-import com.codeforcesvisualizer.shared.core.Either
 import com.codeforcesvisualizer.shared.core.InvalidApiResponseError
 import com.codeforcesvisualizer.shared.core.ServerConnectionResponseError
-import com.codeforcesvisualizer.shared.data.datasource.CFRemoteDataSourceImpl
-import com.codeforcesvisualizer.shared.data.network.ApiClient
-import com.codeforcesvisualizer.shared.data.network.CFApiService
-import com.codeforcesvisualizer.shared.data.network.RequestThrottle
-import com.codeforcesvisualizer.shared.data.repository.CFRepositoryImpl
+import com.codeforcesvisualizer.shared.data.local.buildCFDatabase
 import com.codeforcesvisualizer.shared.domain.entity.ParticipantType
 import com.codeforcesvisualizer.shared.domain.entity.UserStatus
-import io.ktor.client.engine.mock.MockEngine
-import io.ktor.client.engine.mock.respond
-import io.ktor.client.request.HttpRequestData
-import io.ktor.http.HttpHeaders
 import io.ktor.http.HttpStatusCode
-import io.ktor.http.headersOf
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.test.runTest
+import kotlin.test.AfterTest
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertIs
 import kotlin.test.assertNull
 import kotlin.test.assertTrue
-import kotlin.test.fail
-import kotlin.time.Duration
 
 /**
- * Runs recorded Codeforces responses through the real HTTP client, data source and repository,
- * so a change in parsing or error handling shows up here before it reaches users.
+ * Runs recorded Codeforces responses through the real HTTP client, data source, repository and
+ * database, so a change in parsing or error handling shows up here before it reaches users.
  */
-class CFRepositoryContractTest {
+class CFRepositoryContractTest : DatabaseTest() {
 
-    private val codeforces = FakeCodeforces()
+    private val database = inMemoryDatabase()
+    private val codeforces = FakeCodeforces(database)
     private val repository = codeforces.repository
+
+    @AfterTest
+    fun closeDatabase() {
+        database.close()
+    }
 
     @Test
     fun userInfoMapsProfileAndTrimsHandle() = runTest {
@@ -70,6 +65,7 @@ class CFRepositoryContractTest {
         assertEquals(1_789_326_747L, accepted.creationTimeSeconds)
         assertEquals(ParticipantType.PRACTICE, accepted.participantType)
         assertEquals(2400, accepted.problem.rating)
+        assertEquals(listOf("binary search", "bitmasks", "data structures"), accepted.problem.tags)
         assertEquals("1401-F", accepted.problem.key)
         assertTrue(accepted.isAccepted)
         assertEquals("WRONG_ANSWER", submissions.last().verdict)
@@ -92,9 +88,9 @@ class CFRepositoryContractTest {
     fun contestListMarksUpcomingContestsAsScheduled() = runTest {
         codeforces.stub("contest.list", ApiFixtures.CONTEST_LIST)
 
-        val contests = repository.getContestList(refresh = true).value()
+        repository.refreshContestList().value()
+        val (upcoming, finished) = repository.observeContestList().first()
 
-        val (upcoming, finished) = contests
         assertTrue(upcoming.scheduled)
         assertEquals("Scheduled", upcoming.phase)
         assertEquals(false, finished.scheduled)
@@ -123,38 +119,4 @@ class CFRepositoryContractTest {
 
         assertIs<ServerConnectionResponseError>(repository.getUserInfoByHandle("tourist").error())
     }
-}
-
-private class FakeCodeforces {
-    val requests = mutableListOf<HttpRequestData>()
-    private val stubs = mutableMapOf<String, Pair<HttpStatusCode, String>>()
-
-    private val engine = MockEngine { request ->
-        requests += request
-        val method = request.url.encodedPath.substringAfterLast('/')
-        val (status, body) = stubs[method] ?: (HttpStatusCode.NotFound to "")
-        respond(body, status, headersOf(HttpHeaders.ContentType, "application/json"))
-    }
-
-    val repository = CFRepositoryImpl(
-        CFRemoteDataSourceImpl(
-            api = CFApiService(ApiClient.getHttpClient(enableLogging = false, engine = engine)),
-            throttle = RequestThrottle(minInterval = Duration.ZERO)
-        )
-    )
-
-    /** Answers calls to the API [method], e.g. "user.info", with [body]. */
-    fun stub(method: String, body: String, status: HttpStatusCode = HttpStatusCode.OK) {
-        stubs[method] = status to body
-    }
-}
-
-private fun <V> Either<AppError, V>.value(): V = when (this) {
-    is Either.Right -> data
-    is Either.Left -> fail("Expected a result but got error: ${data.message}")
-}
-
-private fun <V> Either<AppError, V>.error(): AppError = when (this) {
-    is Either.Left -> data
-    is Either.Right -> fail("Expected an error but got: $data")
 }

@@ -3,9 +3,9 @@ package com.codeforcesvisualizer.profile
 import app.cash.turbine.test
 import com.codeforcesvisualizer.core.data.RecentSearchRepository
 import com.codeforcesvisualizer.shared.core.Either
-import com.codeforcesvisualizer.shared.domain.usecase.GetUserInfoByHandleUseCase
-import com.codeforcesvisualizer.shared.domain.usecase.GetUserRatingsByHandleUseCase
-import com.codeforcesvisualizer.shared.domain.usecase.GetUserStatusByHandleUseCase
+import com.codeforcesvisualizer.shared.core.ServerConnectionResponseError
+import com.codeforcesvisualizer.shared.domain.usecase.ObserveUserProfileUseCase
+import com.codeforcesvisualizer.shared.domain.usecase.RefreshUserProfileUseCase
 import com.codeforcesvisualizer.testing.FakeCFRepository
 import com.codeforcesvisualizer.testing.InMemoryPreferencesDataStore
 import com.codeforcesvisualizer.testing.acceptedSubmission
@@ -15,7 +15,6 @@ import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.StandardTestDispatcher
-import kotlinx.coroutines.test.TestScope
 import kotlinx.coroutines.test.advanceUntilIdle
 import kotlinx.coroutines.test.resetMain
 import kotlinx.coroutines.test.runCurrent
@@ -35,6 +34,14 @@ class ProfileSearchViewModelTest {
     private val dispatcher = StandardTestDispatcher()
     private val repository = FakeCFRepository()
 
+    private val viewModel by lazy {
+        ProfileSearchViewModel(
+            observeUserProfileUseCase = ObserveUserProfileUseCase(repository),
+            refreshUserProfileUseCase = RefreshUserProfileUseCase(repository),
+            recentSearchRepository = RecentSearchRepository(InMemoryPreferencesDataStore())
+        )
+    }
+
     @BeforeTest
     fun setUp() {
         Dispatchers.setMain(dispatcher)
@@ -45,39 +52,31 @@ class ProfileSearchViewModelTest {
         Dispatchers.resetMain()
     }
 
-    private fun TestScope.viewModel() = ProfileSearchViewModel(
-        getUserInfoByHandleUseCase = GetUserInfoByHandleUseCase(repository),
-        getUserStatusByHandleUseCase = GetUserStatusByHandleUseCase(repository),
-        getUserRatingByHandleUseCase = GetUserRatingsByHandleUseCase(repository),
-        recentSearchRepository = RecentSearchRepository(InMemoryPreferencesDataStore())
-    )
-
     @Test
     fun searchShowsLoadingThenTheProfile() = runTest(dispatcher) {
-        repository.users["tourist"] = Either.Right(user("tourist", rating = 3301))
-        repository.ratings["tourist"] = Either.Right(listOf(ratingChange(0, 3301)))
-        repository.submissions["tourist"] = Either.Right(listOf(acceptedSubmission("A")))
-        val viewModel = viewModel()
+        givenTourist()
+        // Hold the responses so the loading state is observable before they arrive.
+        val responses = CompletableDeferred<Unit>()
+        repository.gates["tourist"] = responses
 
-        viewModel.userInfoState.test {
-            assertEquals(UserInfoUiState(), awaitItem())
+        viewModel.search("tourist")
+        runCurrent()
 
-            viewModel.search("tourist")
+        assertTrue(viewModel.userInfoState.value.loading)
+        assertNull(viewModel.userInfoState.value.user)
 
-            assertTrue(awaitItem().loading)
-            val loaded = awaitItem()
-            assertFalse(loaded.loading)
-            assertEquals(3301, loaded.user?.rating)
-        }
+        responses.complete(Unit)
         advanceUntilIdle()
+
+        val loaded = viewModel.userInfoState.value
+        assertFalse(loaded.loading)
+        assertEquals(3301, loaded.user?.rating)
         assertEquals(1, viewModel.userStatusState.value.userStatus?.size)
         assertEquals(1, viewModel.userRatingState.value.userRatings?.size)
     }
 
     @Test
     fun unknownHandleShowsTheError() = runTest(dispatcher) {
-        val viewModel = viewModel()
-
         viewModel.search("zz_no_such_handle_zz")
         advanceUntilIdle()
 
@@ -88,12 +87,27 @@ class ProfileSearchViewModelTest {
     }
 
     @Test
+    fun savedProfileStaysVisibleWhenRefreshFails() = runTest(dispatcher) {
+        givenTourist()
+        viewModel.search("tourist")
+        advanceUntilIdle()
+
+        repository.users["tourist"] = Either.Left(ServerConnectionResponseError())
+        viewModel.search("tourist")
+        advanceUntilIdle()
+
+        val state = viewModel.userInfoState.value
+        assertEquals(3301, state.user?.rating)
+        assertEquals("", state.userMessage)
+        assertTrue(viewModel.showingSavedData.value)
+    }
+
+    @Test
     fun newSearchCancelsTheSlowerPreviousOne() = runTest(dispatcher) {
         val slowResponse = CompletableDeferred<Unit>()
         repository.gates["slow"] = slowResponse
         repository.users["slow"] = Either.Right(user("slow"))
         repository.users["fast"] = Either.Right(user("fast"))
-        val viewModel = viewModel()
 
         viewModel.search("slow")
         runCurrent()
@@ -107,8 +121,6 @@ class ProfileSearchViewModelTest {
 
     @Test
     fun blankSearchIsIgnored() = runTest(dispatcher) {
-        val viewModel = viewModel()
-
         viewModel.search("   ")
         advanceUntilIdle()
 
@@ -117,8 +129,6 @@ class ProfileSearchViewModelTest {
 
     @Test
     fun searchedHandleAppearsInRecentSearches() = runTest(dispatcher) {
-        val viewModel = viewModel()
-
         viewModel.recentSearches.test {
             assertEquals(emptyList(), awaitItem())
 
@@ -126,5 +136,11 @@ class ProfileSearchViewModelTest {
 
             assertEquals(listOf("tourist"), awaitItem())
         }
+    }
+
+    private fun givenTourist() {
+        repository.users["tourist"] = Either.Right(user("tourist", rating = 3301))
+        repository.ratings["tourist"] = Either.Right(listOf(ratingChange(0, 3301)))
+        repository.submissions["tourist"] = Either.Right(listOf(acceptedSubmission("A")))
     }
 }

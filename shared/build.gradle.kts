@@ -2,20 +2,22 @@ plugins {
     alias(libs.plugins.kotlin.multiplatform)
     alias(libs.plugins.android.kotlin.multiplatform.library)
     alias(libs.plugins.kotlin.serialization)
+    alias(libs.plugins.kspModule)
+    alias(libs.plugins.androidx.room)
     //alias(libs.plugins.android.lint)
 }
 
 kotlin {
 
-    // Target declarations - add or remove as needed below. These define
-    // which platforms this KMP module supports.
-    // See: https://kotlinlang.org/docs/multiplatform-discover-project.html#targets
     androidLibrary {
         namespace = "com.codeforcesvisualizer.shared"
         compileSdk = libs.versions.compileSdk.get().toInt()
         minSdk = libs.versions.minSdk.get().toInt()
 
         withHostTestBuilder {
+        }.configure {
+            // Database tests run on Robolectric, which needs Android resources.
+            isIncludeAndroidResources = true
         }
 
         withDeviceTestBuilder {
@@ -25,13 +27,6 @@ kotlin {
         }
     }
 
-    // For iOS targets, this is also where you should
-    // configure native binary output. For more information, see:
-    // https://kotlinlang.org/docs/multiplatform-build-native-binaries.html#build-xcframeworks
-
-    // A step-by-step guide on how to include this library in an XCode
-    // project can be found here:
-    // https://developer.android.com/kotlin/multiplatform/migrate
     val xcfName = "sharedKit"
 
     iosX64 {
@@ -52,11 +47,6 @@ kotlin {
         }
     }
 
-    // Source set declarations.
-    // Declaring a target automatically creates a source set with the same name. By default, the
-    // Kotlin Gradle Plugin creates additional source sets that depend on each other, since it is
-    // common to share sources between related targets.
-    // See: https://kotlinlang.org/docs/multiplatform-hierarchy.html
     sourceSets {
         commonMain {
             dependencies {
@@ -69,6 +59,8 @@ kotlin {
                 implementation(libs.io.ktor.client.logging)
                 implementation(libs.androidx.datastore)
                 implementation(libs.androidx.datastore.preferences)
+                implementation(libs.androidx.room.runtime)
+                implementation(libs.androidx.sqlite.bundled)
             }
         }
 
@@ -83,6 +75,16 @@ kotlin {
         androidMain {
             dependencies {
                 implementation(libs.io.ktor.client.cio)
+            }
+        }
+
+        getByName("androidHostTest") {
+            dependencies {
+                implementation(libs.junit)
+                implementation(libs.robolectric)
+                implementation(libs.androidx.sqlite.framework)
+                implementation(libs.androidx.core)
+                implementation(libs.androidx.test.ext.junit)
             }
         }
 
@@ -101,4 +103,15 @@ kotlin {
         }
     }
 
+}
+
+room {
+    // Exported schemas document every database version for review.
+    schemaDirectory("$projectDir/schemas")
+}
+
+dependencies {
+    listOf("kspAndroid", "kspIosX64", "kspIosArm64", "kspIosSimulatorArm64").forEach { configuration ->
+        add(configuration, libs.androidx.room.compiler)
+    }
 }

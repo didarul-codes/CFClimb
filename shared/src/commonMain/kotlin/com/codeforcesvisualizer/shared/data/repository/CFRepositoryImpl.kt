@@ -1,75 +1,147 @@
 package com.codeforcesvisualizer.shared.data.repository
 
+import com.codeforcesvisualizer.shared.core.AppError
 import com.codeforcesvisualizer.shared.core.DataNotFoundError
 import com.codeforcesvisualizer.shared.core.Either
 import com.codeforcesvisualizer.shared.core.MatchingDataNotFoundError
-import com.codeforcesvisualizer.shared.core.AppError
 import com.codeforcesvisualizer.shared.data.datasource.CFRemoteDataSource
+import com.codeforcesvisualizer.shared.data.local.ContestDao
+import com.codeforcesvisualizer.shared.data.local.FetchTimeEntity
+import com.codeforcesvisualizer.shared.data.local.ProfileDao
+import com.codeforcesvisualizer.shared.data.local.handleKey
+import com.codeforcesvisualizer.shared.data.local.ratingsFetchKey
+import com.codeforcesvisualizer.shared.data.local.submissionsFetchKey
+import com.codeforcesvisualizer.shared.data.local.toDomain
+import com.codeforcesvisualizer.shared.data.local.toRow
 import com.codeforcesvisualizer.shared.domain.entity.Contest
 import com.codeforcesvisualizer.shared.domain.entity.User
 import com.codeforcesvisualizer.shared.domain.entity.UserRating
 import com.codeforcesvisualizer.shared.domain.entity.UserStatus
 import com.codeforcesvisualizer.shared.domain.repository.CFRepository
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.IO
-import kotlinx.coroutines.withContext
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.map
+import kotlinx.datetime.Clock
 
 class CFRepositoryImpl(
-    private val cfRemoteDataSource: CFRemoteDataSource
+    private val cfRemoteDataSource: CFRemoteDataSource,
+    private val contestDao: ContestDao,
+    private val profileDao: ProfileDao,
+    private val clock: Clock = Clock.System
 ) : CFRepository {
-    private val _contestList = mutableListOf<Contest>()
 
-    override suspend fun getContestList(refresh: Boolean): Either<AppError, List<Contest>> {
-        if (!refresh && _contestList.isNotEmpty()) return Either.Right(data = _contestList)
+    override fun observeContestList(): Flow<List<Contest>> {
+        return contestDao.observeAll().map { rows -> rows.map { it.toDomain() } }
+    }
 
-        val data = cfRemoteDataSource.getContestList()
-        return if (data is Either.Right) {
-            _contestList.apply {
-                clear()
-                addAll(data.data.toEntity())
+    override fun observeContest(id: Int): Flow<Contest?> {
+        return contestDao.observeById(id).map { it?.toDomain() }
+    }
+
+    override suspend fun refreshContestList(): Either<AppError, Unit> {
+        return when (val data = cfRemoteDataSource.getContestList()) {
+            is Either.Left -> Either.Left(data.data)
+            is Either.Right -> {
+                contestDao.replaceAll(data.data.toEntity().map { it.toRow() })
+                Either.Right(Unit)
             }
-            Either.Right(data = _contestList)
-        } else Either.Left(data = (data as Either.Left).data)
-    }
-
-    override suspend fun getUserInfoByHandle(handle: String): Either<AppError, User> {
-        val data = cfRemoteDataSource.getUserInfoByHandle(handle.trim())
-        return if (data is Either.Right) Either.Right(data = data.data.toEntity().first())
-        else Either.Left(data = (data as Either.Left).data)
-    }
-
-    override suspend fun getUserStatusByHandle(handle: String): Either<AppError, List<UserStatus>> {
-        val data = cfRemoteDataSource.getUserStatusByHandle(handle.trim())
-        return if (data is Either.Right) Either.Right(data = data.data.toEntity())
-        else Either.Left(data = (data as Either.Left).data)
-    }
-
-    override suspend fun getUserRatingByHandle(handle: String): Either<AppError, List<UserRating>> {
-        val data = cfRemoteDataSource.getUserRatingByHandle(handle.trim())
-        return if (data is Either.Right) Either.Right(data = data.data.toEntity())
-        else Either.Left(data = (data as Either.Left).data)
-    }
-
-    override suspend fun getContestById(id: Int): Either<AppError, Contest> {
-        return withContext(Dispatchers.IO) {
-            val contest = _contestList.find { contest -> contest.id == id }
-            if (contest != null) Either.Right(data = contest)
-            else Either.Left(data = DataNotFoundError())
         }
     }
 
     override suspend fun filterContestList(key: String): Either<AppError, List<Contest>> {
         if (key.isBlank()) return Either.Left(data = AppError(""))
 
-        return withContext(Dispatchers.IO) {
-            val filtered = _contestList.filter { contest ->
-                contest.name.contains(key, ignoreCase = true) || contest.type.contains(
-                    key,
-                    ignoreCase = true
-                )
+        val matches = contestDao.search(key.trim()).map { it.toDomain() }
+        return if (matches.isNotEmpty()) Either.Right(data = matches)
+        else Either.Left(data = MatchingDataNotFoundError())
+    }
+
+    override fun observeUser(handle: String): Flow<User?> {
+        return profileDao.observeUser(handleKey(handle)).map { it?.toDomain() }
+    }
+
+    override fun observeUserRatings(handle: String): Flow<List<UserRating>?> {
+        val key = handleKey(handle)
+        return combine(
+            profileDao.observeRatingChanges(key),
+            profileDao.observeFetchTime(ratingsFetchKey(key))
+        ) { rows, fetchTime ->
+            if (fetchTime == null) null else rows.map { it.toDomain() }
+        }
+    }
+
+    override fun observeUserSubmissions(handle: String): Flow<List<UserStatus>?> {
+        val key = handleKey(handle)
+        return combine(
+            profileDao.observeSubmissions(key),
+            profileDao.observeFetchTime(submissionsFetchKey(key))
+        ) { rows, fetchTime ->
+            if (fetchTime == null) null else rows.map { it.toDomain() }
+        }
+    }
+
+    override suspend fun refreshUser(handle: String): Either<AppError, Unit> {
+        return when (val data = cfRemoteDataSource.getUserInfoByHandle(handle.trim())) {
+            is Either.Left -> Either.Left(data.data)
+            is Either.Right -> {
+                profileDao.upsertUser(data.data.toEntity().first().toRow())
+                Either.Right(Unit)
             }
-            if (filtered.isNotEmpty()) Either.Right(data = filtered)
-            else Either.Left(data = MatchingDataNotFoundError())
+        }
+    }
+
+    override suspend fun refreshUserRatings(handle: String): Either<AppError, Unit> {
+        return when (val data = cfRemoteDataSource.getUserRatingByHandle(handle.trim())) {
+            is Either.Left -> Either.Left(data.data)
+            is Either.Right -> {
+                val key = handleKey(handle)
+                profileDao.replaceRatingChanges(
+                    handleKey = key,
+                    changes = data.data.toEntity().map { it.toRow(key) },
+                    fetchTime = FetchTimeEntity(ratingsFetchKey(key), clock.now().epochSeconds)
+                )
+                Either.Right(Unit)
+            }
+        }
+    }
+
+    override suspend fun refreshUserSubmissions(handle: String): Either<AppError, Unit> {
+        return when (val data = cfRemoteDataSource.getUserStatusByHandle(handle.trim())) {
+            is Either.Left -> Either.Left(data.data)
+            is Either.Right -> {
+                val key = handleKey(handle)
+                profileDao.replaceSubmissions(
+                    handleKey = key,
+                    submissions = data.data.toEntity().map { it.toRow(key) },
+                    fetchTime = FetchTimeEntity(submissionsFetchKey(key), clock.now().epochSeconds)
+                )
+                Either.Right(Unit)
+            }
+        }
+    }
+
+    override suspend fun getUserInfoByHandle(handle: String): Either<AppError, User> {
+        return refreshThenRead(refreshUser(handle)) { observeUser(handle).first() }
+    }
+
+    override suspend fun getUserStatusByHandle(handle: String): Either<AppError, List<UserStatus>> {
+        return refreshThenRead(refreshUserSubmissions(handle)) { observeUserSubmissions(handle).first() }
+    }
+
+    override suspend fun getUserRatingByHandle(handle: String): Either<AppError, List<UserRating>> {
+        return refreshThenRead(refreshUserRatings(handle)) { observeUserRatings(handle).first() }
+    }
+
+    private suspend fun <T : Any> refreshThenRead(
+        refresh: Either<AppError, Unit>,
+        readCache: suspend () -> T?
+    ): Either<AppError, T> {
+        val cached = readCache()
+        return when {
+            cached != null -> Either.Right(cached)
+            refresh is Either.Left -> Either.Left(refresh.data)
+            else -> Either.Left(DataNotFoundError())
         }
     }
 }

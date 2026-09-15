@@ -6,6 +6,7 @@ import androidx.datastore.preferences.core.emptyPreferences
 import com.codeforcesvisualizer.shared.core.AppError
 import com.codeforcesvisualizer.shared.core.DataNotFoundError
 import com.codeforcesvisualizer.shared.core.Either
+import com.codeforcesvisualizer.shared.core.MatchingDataNotFoundError
 import com.codeforcesvisualizer.shared.domain.entity.Contest
 import com.codeforcesvisualizer.shared.domain.entity.ParticipantType
 import com.codeforcesvisualizer.shared.domain.entity.Problem
@@ -16,39 +17,89 @@ import com.codeforcesvisualizer.shared.domain.repository.CFRepository
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.update
 
-/** Answers from in-memory maps; unknown handles fail with [DataNotFoundError]. */
+/**
+ * Behaves like the offline-first repository: refreshes copy "remote" responses into an in-memory
+ * cache that observers see. Unknown handles fail with [DataNotFoundError].
+ */
 class FakeCFRepository : CFRepository {
+    /** What the next contest refresh returns. */
+    var remoteContests: Either<AppError, List<Contest>> = Either.Right(emptyList())
+    val cachedContests = MutableStateFlow<List<Contest>>(emptyList())
+
+    /** Remote responses per handle. */
     val users = mutableMapOf<String, Either<AppError, User>>()
     val ratings = mutableMapOf<String, Either<AppError, List<UserRating>>>()
     val submissions = mutableMapOf<String, Either<AppError, List<UserStatus>>>()
 
-    /** Calls for a handle listed here suspend until the deferred completes. */
+    /** Refreshes for a handle listed here suspend until the deferred completes. */
     val gates = mutableMapOf<String, CompletableDeferred<Unit>>()
 
-    override suspend fun getUserInfoByHandle(handle: String): Either<AppError, User> {
-        gates[handle]?.await()
-        return users[handle] ?: Either.Left(DataNotFoundError())
+    private val cachedUsers = MutableStateFlow<Map<String, User>>(emptyMap())
+    private val cachedRatings = MutableStateFlow<Map<String, List<UserRating>>>(emptyMap())
+    private val cachedSubmissions = MutableStateFlow<Map<String, List<UserStatus>>>(emptyMap())
+
+    override fun observeContestList(): Flow<List<Contest>> = cachedContests
+
+    override fun observeContest(id: Int): Flow<Contest?> = cachedContests.map { list -> list.find { it.id == id } }
+
+    override suspend fun refreshContestList(): Either<AppError, Unit> = when (val result = remoteContests) {
+        is Either.Left -> Either.Left(result.data)
+        is Either.Right -> {
+            cachedContests.value = result.data
+            Either.Right(Unit)
+        }
     }
 
-    override suspend fun getUserRatingByHandle(handle: String): Either<AppError, List<UserRating>> {
-        gates[handle]?.await()
-        return ratings[handle] ?: Either.Left(DataNotFoundError())
+    override suspend fun filterContestList(key: String): Either<AppError, List<Contest>> {
+        val matches = cachedContests.value.filter { it.name.contains(key, ignoreCase = true) }
+        return if (matches.isEmpty()) Either.Left(MatchingDataNotFoundError()) else Either.Right(matches)
     }
 
-    override suspend fun getUserStatusByHandle(handle: String): Either<AppError, List<UserStatus>> {
+    override fun observeUser(handle: String): Flow<User?> = cachedUsers.map { it[handle] }
+
+    override fun observeUserRatings(handle: String): Flow<List<UserRating>?> = cachedRatings.map { it[handle] }
+
+    override fun observeUserSubmissions(handle: String): Flow<List<UserStatus>?> = cachedSubmissions.map { it[handle] }
+
+    override suspend fun refreshUser(handle: String) = refresh(handle, users, cachedUsers)
+
+    override suspend fun refreshUserRatings(handle: String) = refresh(handle, ratings, cachedRatings)
+
+    override suspend fun refreshUserSubmissions(handle: String) = refresh(handle, submissions, cachedSubmissions)
+
+    override suspend fun getUserInfoByHandle(handle: String) =
+        refreshThenRead(refreshUser(handle), observeUser(handle).first())
+
+    override suspend fun getUserStatusByHandle(handle: String) =
+        refreshThenRead(refreshUserSubmissions(handle), observeUserSubmissions(handle).first())
+
+    override suspend fun getUserRatingByHandle(handle: String) =
+        refreshThenRead(refreshUserRatings(handle), observeUserRatings(handle).first())
+
+    private suspend fun <T> refresh(
+        handle: String,
+        remote: Map<String, Either<AppError, T>>,
+        cache: MutableStateFlow<Map<String, T>>
+    ): Either<AppError, Unit> {
         gates[handle]?.await()
-        return submissions[handle] ?: Either.Left(DataNotFoundError())
+        return when (val result = remote[handle] ?: Either.Left(DataNotFoundError())) {
+            is Either.Left -> Either.Left(result.data)
+            is Either.Right -> {
+                cache.update { it + (handle to result.data) }
+                Either.Right(Unit)
+            }
+        }
     }
 
-    override suspend fun getContestList(refresh: Boolean): Either<AppError, List<Contest>> =
-        Either.Left(DataNotFoundError())
-
-    override suspend fun getContestById(id: Int): Either<AppError, Contest> =
-        Either.Left(DataNotFoundError())
-
-    override suspend fun filterContestList(key: String): Either<AppError, List<Contest>> =
-        Either.Left(DataNotFoundError())
+    private fun <T> refreshThenRead(refresh: Either<AppError, Unit>, cached: T?): Either<AppError, T> = when {
+        cached != null -> Either.Right(cached)
+        refresh is Either.Left -> Either.Left(refresh.data)
+        else -> Either.Left(DataNotFoundError())
+    }
 }
 
 class InMemoryPreferencesDataStore : DataStore<Preferences> {
@@ -106,4 +157,25 @@ fun acceptedSubmission(index: String) = UserStatus(
         rating = 800,
         tags = emptyList()
     )
+)
+
+fun contest(id: Int, name: String = "Codeforces Round $id", scheduled: Boolean = false) = Contest(
+    id = id,
+    name = name,
+    type = "CF",
+    phase = if (scheduled) "Scheduled" else "Finished",
+    frozen = false,
+    scheduled = scheduled,
+    durationSeconds = 7200,
+    // A start time in the past keeps the details countdown from running in tests.
+    startTimeSeconds = 0,
+    relativeTimeSeconds = 0,
+    preparedBy = null,
+    websiteUrl = null,
+    description = null,
+    difficulty = null,
+    kind = null,
+    icpcRegion = null,
+    country = null,
+    season = null
 )

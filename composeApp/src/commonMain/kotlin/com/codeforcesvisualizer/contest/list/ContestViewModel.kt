@@ -2,54 +2,56 @@ package com.codeforcesvisualizer.contest.list
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.codeforcesvisualizer.shared.core.AppError
 import com.codeforcesvisualizer.shared.core.Either
-import com.codeforcesvisualizer.shared.domain.entity.Contest
-import com.codeforcesvisualizer.shared.domain.usecase.GetContestListUseCase
+import com.codeforcesvisualizer.shared.domain.usecase.ObserveContestListUseCase
+import com.codeforcesvisualizer.shared.domain.usecase.RefreshContestListUseCase
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 
 class ContestViewModel(
-    private val contestListUseCase: GetContestListUseCase
+    observeContestListUseCase: ObserveContestListUseCase,
+    private val refreshContestListUseCase: RefreshContestListUseCase
 ) : ViewModel() {
-    private val _uiState = MutableStateFlow(ContestListUiState())
-    val uiState: StateFlow<ContestListUiState> = _uiState
+    private val refreshState = MutableStateFlow(RefreshState())
+
+    /**
+     * Shows cached contests right away. A refresh error only replaces the list when nothing is
+     * cached; otherwise the saved list stays on screen.
+     */
+    val uiState: StateFlow<ContestListUiState> = combine(
+        observeContestListUseCase(),
+        refreshState
+    ) { contests, refresh ->
+        ContestListUiState(
+            refreshing = refresh.inProgress && contests.isNotEmpty(),
+            loading = refresh.inProgress && contests.isEmpty(),
+            contestList = contests,
+            userMessage = if (contests.isEmpty()) refresh.error else "",
+        )
+    }.stateIn(viewModelScope, SharingStarted.Eagerly, ContestListUiState(loading = true))
 
     init {
-        loadContestList()
+        refreshContestList()
     }
 
     fun refreshContestList() {
-        if (_uiState.value.refreshing) return
-        _uiState.value = _uiState.value.copy(refreshing = true)
+        if (refreshState.value.inProgress) return
+        refreshState.value = RefreshState(inProgress = true)
         viewModelScope.launch {
-            getContestList(true)
-            _uiState.value = _uiState.value.copy(refreshing = false)
-        }
-    }
-
-    private fun loadContestList() {
-        _uiState.value = _uiState.value.copy(loading = true)
-        viewModelScope.launch {
-            getContestList()
-        }
-    }
-
-    private suspend fun getContestList(refresh: Boolean = false) {
-        val data: Either<AppError, List<Contest>> = contestListUseCase.invoke(refresh)
-        if (data is Either.Right) {
-            _uiState.value = _uiState.value.copy(
-                loading = false,
-                userMessage = "",
-                contestList = data.data,
-            )
-        } else {
-            _uiState.value = _uiState.value.copy(
-                loading = false,
-                contestList = emptyList(),
-                userMessage = (data as Either.Left).data.message
-            )
+            val error = when (val result = refreshContestListUseCase()) {
+                is Either.Left -> result.data.message
+                is Either.Right -> ""
+            }
+            refreshState.value = RefreshState(inProgress = false, error = error)
         }
     }
 }
+
+private data class RefreshState(
+    val inProgress: Boolean = false,
+    val error: String = "",
+)

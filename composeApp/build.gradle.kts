@@ -52,6 +52,7 @@ kotlin {
             implementation(libs.androidx.core.ktx)
             implementation(libs.androidx.datastore)
             implementation(libs.androidx.datastore.preferences)
+            implementation(libs.androidx.room.runtime)
 
             implementation(project.dependencies.platform(libs.firebase.bom))
 

@@ -81,6 +81,7 @@ fun ProfileSearchScreen(
     val userStatusUiState by viewModel.userStatusState.collectAsState()
     val userRatingsUiState by viewModel.userRatingState.collectAsState()
     val recentSearches by viewModel.recentSearches.collectAsState()
+    val showingSavedData by viewModel.showingSavedData.collectAsState()
 
     val colors = CFThemeColors.current
     val showRecent = userInfoUiState.user == null && !userInfoUiState.loading
@@ -113,6 +114,18 @@ fun ProfileSearchScreen(
                 },
                 onClearAll = { viewModel.clearRecentSearches() },
                 modifier = Modifier.padding(horizontal = 18.dp, vertical = 12.dp),
+            )
+        }
+
+        if (showingSavedData) {
+            Text(
+                text = "offline · showing saved data",
+                style = TextStyle(
+                    fontFamily = FontFamily.Monospace,
+                    fontSize = 11.sp,
+                    color = colors.amber
+                ),
+                modifier = Modifier.padding(horizontal = 18.dp, vertical = 6.dp)
             )
         }
 

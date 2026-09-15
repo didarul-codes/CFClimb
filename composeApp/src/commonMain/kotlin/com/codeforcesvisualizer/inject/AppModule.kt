@@ -2,6 +2,8 @@ package com.codeforcesvisualizer.inject
 
 import com.codeforcesvisualizer.shared.data.datasource.CFRemoteDataSource
 import com.codeforcesvisualizer.shared.data.datasource.CFRemoteDataSourceImpl
+import com.codeforcesvisualizer.shared.data.local.CFDatabase
+import com.codeforcesvisualizer.shared.data.local.buildCFDatabase
 import com.codeforcesvisualizer.shared.data.network.RequestThrottle
 import com.codeforcesvisualizer.shared.data.repository.CFRepositoryImpl
 import com.codeforcesvisualizer.shared.data.repository.ThemeRepositoryImpl
@@ -18,6 +20,15 @@ val appModule = module {
             throttle = get()
         )
     }
-    single<CFRepository> { CFRepositoryImpl(get()) }
+    single { buildCFDatabase(createDatabaseBuilder()) }
+    single { get<CFDatabase>().contestDao() }
+    single { get<CFDatabase>().profileDao() }
+    single<CFRepository> {
+        CFRepositoryImpl(
+            cfRemoteDataSource = get(),
+            contestDao = get(),
+            profileDao = get()
+        )
+    }
     single<ThemeRepository> { ThemeRepositoryImpl() }
 }
