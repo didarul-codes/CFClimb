@@ -16,6 +16,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
@@ -36,20 +37,17 @@ import coil3.ImageLoader
 import coil3.compose.setSingletonImageLoaderFactory
 import coil3.network.ktor3.KtorNetworkFetcherFactory
 import com.codeforcesvisualizer.core.EventLogger
+import com.codeforcesvisualizer.core.reminders.ContestReminders
 import com.codeforcesvisualizer.core.theme.CFTheme
 import com.codeforcesvisualizer.core.theme.CFThemeColors
-import com.codeforcesvisualizer.inject.appModule
-import com.codeforcesvisualizer.inject.networkingModule
-import com.codeforcesvisualizer.inject.preferenceModule
-import com.codeforcesvisualizer.inject.useCaseModule
-import com.codeforcesvisualizer.inject.viewModelModule
 import com.codeforcesvisualizer.navigation.AppNavigator
 import com.codeforcesvisualizer.navigation.Screen
 import com.codeforcesvisualizer.preference.ThemeManager
 import com.codeforcesvisualizer.shared.domain.entity.UiThemeMode
-import org.koin.compose.KoinApplication
+import org.koin.compose.KoinContext
 import org.koin.compose.koinInject
 
+/** Koin must already be started with `initKoin()` by the platform entry point. */
 @Composable
 fun App() {
     setSingletonImageLoaderFactory { context ->
@@ -59,15 +57,7 @@ fun App() {
             }
             .build()
     }
-    KoinApplication(application = {
-        modules(
-            networkingModule,
-            appModule,
-            preferenceModule,
-            useCaseModule,
-            viewModelModule
-        )
-    }) {
+    KoinContext {
         Home()
     }
 }
@@ -84,6 +74,12 @@ private fun Home(
         UiThemeMode.Light -> false
     }
     val navController = rememberNavController()
+
+    // Keeps contest reminders in step with refreshed start times and reminder settings.
+    val contestReminders = koinInject<ContestReminders>()
+    LaunchedEffect(contestReminders) {
+        contestReminders.keepScheduled()
+    }
 
     CFTheme(
         isDarkTheme = isDarkTheme

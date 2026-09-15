@@ -74,6 +74,7 @@ kotlin {
         }
         androidUnitTest.dependencies {
             implementation(libs.junit)
+            implementation(libs.androidx.core)
             implementation(libs.androidx.test.ext.junit)
             implementation(libs.robolectric)
             implementation(libs.roborazzi)

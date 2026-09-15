@@ -159,7 +159,13 @@ fun acceptedSubmission(index: String) = UserStatus(
     )
 )
 
-fun contest(id: Int, name: String = "Codeforces Round $id", scheduled: Boolean = false) = Contest(
+fun contest(
+    id: Int,
+    name: String = "Codeforces Round $id",
+    scheduled: Boolean = false,
+    // A start time in the past keeps the details countdown from running in tests.
+    startTimeSeconds: Int = 0,
+) = Contest(
     id = id,
     name = name,
     type = "CF",
@@ -167,8 +173,7 @@ fun contest(id: Int, name: String = "Codeforces Round $id", scheduled: Boolean =
     frozen = false,
     scheduled = scheduled,
     durationSeconds = 7200,
-    // A start time in the past keeps the details countdown from running in tests.
-    startTimeSeconds = 0,
+    startTimeSeconds = startTimeSeconds,
     relativeTimeSeconds = 0,
     preparedBy = null,
     websiteUrl = null,

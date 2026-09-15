@@ -47,6 +47,7 @@ import com.codeforcesvisualizer.core.components.Chip
 import com.codeforcesvisualizer.core.components.CountdownTimer
 import com.codeforcesvisualizer.core.components.HeightSpacer
 import com.codeforcesvisualizer.core.platform.CalendarResult
+import com.codeforcesvisualizer.core.reminders.ContestReminderButton
 import com.codeforcesvisualizer.core.platform.rememberCalendarLauncher
 import com.codeforcesvisualizer.core.platform.toCalendarEvent
 import com.codeforcesvisualizer.core.theme.CFThemeColors
@@ -280,6 +281,8 @@ private fun ContestDetailsContent(
                         )
                     },
                 )
+                HeightSpacer(height = 14.dp)
+                ContestReminderButton(contest = contest)
                 HeightSpacer(height = 14.dp)
             }
 

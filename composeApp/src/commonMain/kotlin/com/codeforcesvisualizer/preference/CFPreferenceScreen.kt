@@ -38,6 +38,7 @@ import com.codeforcesvisualizer.core.components.CFCard
 import com.codeforcesvisualizer.core.components.HeightSpacer
 import com.codeforcesvisualizer.core.components.ScreenHeader
 import com.codeforcesvisualizer.core.data.UserSettingsRepository
+import com.codeforcesvisualizer.core.reminders.ReminderSettingsCard
 import com.codeforcesvisualizer.core.theme.CFThemeColors
 import com.codeforcesvisualizer.shared.domain.entity.UiThemeMode
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -144,6 +145,12 @@ fun PreferenceScreen(
                     }
                 }
             }
+        }
+
+        item { HeightSpacer(height = 16.dp) }
+
+        item {
+            ReminderSettingsCard()
         }
 
         item { HeightSpacer(height = 16.dp) }
