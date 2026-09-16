@@ -33,6 +33,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.runtime.LaunchedEffect
+import com.codeforcesvisualizer.climb.MyClimbCard
 import com.codeforcesvisualizer.core.components.CalendarToast
 import kotlinx.coroutines.delay
 import com.codeforcesvisualizer.core.components.Chip
@@ -54,8 +55,10 @@ internal fun ContestList(
     modifier: Modifier = Modifier,
     groups: ContestGroups,
     nowEpochSeconds: Long,
-    username: String,
     openContestDetails: (Int) -> Unit,
+    openProfile: (String) -> Unit,
+    openSettings: () -> Unit,
+    openUpsolve: () -> Unit,
 ) {
     val colors = CFThemeColors.current
     var selectedTab by remember { mutableStateOf(ContestTab.UPCOMING) }
@@ -80,11 +83,14 @@ internal fun ContestList(
                 )
             }
 
-            // Streak banner (shown when username is set)
-            if (username.isNotBlank()) {
-                item {
-                    StreakBanner(username = username)
-                }
+            // The saved handle's rating, tier progress and week.
+            item {
+                MyClimbCard(
+                    onOpenProfile = openProfile,
+                    onOpenSettings = openSettings,
+                    onOpenUpsolve = openUpsolve,
+                    modifier = Modifier.padding(horizontal = 16.dp, vertical = 6.dp),
+                )
             }
 
             // Running rounds are pinned above everything else in the upcoming tab.
@@ -383,32 +389,3 @@ private fun SectionLabel(text: String) {
     )
 }
 
-@Composable
-private fun StreakBanner(username: String) {
-    val colors = CFThemeColors.current
-    val shape = RoundedCornerShape(10.dp)
-
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(horizontal = 16.dp, vertical = 6.dp)
-            .clip(shape)
-            .background(colors.amber.copy(alpha = 0.08f))
-            .border(1.dp, colors.amber.copy(alpha = 0.2f), shape)
-            .padding(horizontal = 14.dp, vertical = 10.dp),
-        verticalAlignment = Alignment.CenterVertically,
-    ) {
-        Text(
-            text = "🔥",
-            fontSize = 16.sp,
-        )
-        Text(
-            text = "  @$username — competitive mode",
-            style = TextStyle(
-                fontFamily = FontFamily.Monospace,
-                fontSize = 11.sp,
-                color = colors.amber,
-            ),
-        )
-    }
-}

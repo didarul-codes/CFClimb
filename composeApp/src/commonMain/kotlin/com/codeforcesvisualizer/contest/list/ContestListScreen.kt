@@ -9,7 +9,6 @@ import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.State
 import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontFamily
@@ -20,9 +19,7 @@ import com.codeforcesvisualizer.core.components.CFLoadingIndicator
 import com.codeforcesvisualizer.core.components.ErrorState
 import com.codeforcesvisualizer.core.components.OfflineBanner
 import com.codeforcesvisualizer.core.components.ScreenHeader
-import com.codeforcesvisualizer.core.data.UserSettingsRepository
 import com.codeforcesvisualizer.core.theme.CFThemeColors
-import org.koin.compose.koinInject
 import org.koin.compose.viewmodel.koinViewModel
 
 @Composable
@@ -32,14 +29,14 @@ fun ContestListScreen(
     openSearch: () -> Unit = {},
     openContestDetails: (Int) -> Unit = {},
     onOpenWebSite: (Int) -> Unit = {},
+    openProfile: (handle: String) -> Unit = {},
+    openSettings: () -> Unit = {},
+    openUpsolve: () -> Unit = {},
 ) {
     val uiState = viewModel.uiState.collectAsState()
-    val userSettingsRepository = koinInject<UserSettingsRepository>()
-    val username by userSettingsRepository.username.collectAsState(initial = "")
     ContestListScreenContent(
         modifier = modifier,
         state = uiState,
-        username = username,
         onRefresh = viewModel::refreshContestList,
         openContestDetails = { contestId ->
             openContestDetails(contestId)
@@ -48,6 +45,9 @@ fun ContestListScreen(
                 param = mapOf("ContestId" to contestId)
             )
         },
+        openProfile = openProfile,
+        openSettings = openSettings,
+        openUpsolve = openUpsolve,
     )
 }
 
@@ -56,9 +56,11 @@ fun ContestListScreen(
 private fun ContestListScreenContent(
     modifier: Modifier = Modifier,
     state: State<ContestListUiState>,
-    username: String,
     onRefresh: () -> Unit,
     openContestDetails: (Int) -> Unit,
+    openProfile: (String) -> Unit,
+    openSettings: () -> Unit,
+    openUpsolve: () -> Unit,
 ) {
     val colors = CFThemeColors.current
     val uiState = state.value
@@ -110,8 +112,10 @@ private fun ContestListScreenContent(
                         modifier = Modifier.fillMaxSize(),
                         groups = uiState.groups,
                         nowEpochSeconds = uiState.nowEpochSeconds,
-                        username = username,
                         openContestDetails = openContestDetails,
+                        openProfile = openProfile,
+                        openSettings = openSettings,
+                        openUpsolve = openUpsolve,
                     )
                 }
             }

@@ -6,6 +6,8 @@ import com.codeforcesvisualizer.shared.domain.usecase.GetUserRatingsByHandleUseC
 import com.codeforcesvisualizer.shared.domain.usecase.GetUserStatusByHandleUseCase
 import com.codeforcesvisualizer.shared.domain.usecase.ObserveContestListUseCase
 import com.codeforcesvisualizer.shared.domain.usecase.ObserveContestUseCase
+import com.codeforcesvisualizer.shared.domain.usecase.ObserveProblemsetUseCase
+import com.codeforcesvisualizer.shared.domain.usecase.RefreshProblemsetUseCase
 import com.codeforcesvisualizer.shared.domain.usecase.ObserveUserProfileUseCase
 import com.codeforcesvisualizer.shared.domain.usecase.RefreshContestListUseCase
 import com.codeforcesvisualizer.shared.domain.usecase.RefreshUserProfileUseCase
@@ -23,4 +25,6 @@ val useCaseModule = module {
     single { GetUserRatingsByHandleUseCase(get()) }
     single { GetUiThemeModeUseCase(get(), get()) }
     single { SetUiThemeModeUseCase(get(), get()) }
+    single { ObserveProblemsetUseCase(get()) }
+    single { RefreshProblemsetUseCase(get()) }
 }

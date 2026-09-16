@@ -1,10 +1,12 @@
 package com.codeforcesvisualizer.shared.data.network
 
 import com.codeforcesvisualizer.shared.data.config.CONTEST_LIST_URL
+import com.codeforcesvisualizer.shared.data.config.PROBLEMSET_PROBLEMS_URL
 import com.codeforcesvisualizer.shared.data.config.USER_INFO_URL
 import com.codeforcesvisualizer.shared.data.config.USER_RATINGS_URL
 import com.codeforcesvisualizer.shared.data.config.USER_STATUS_URL
 import com.codeforcesvisualizer.shared.data.model.BaseResponseModel
+import com.codeforcesvisualizer.shared.data.model.ProblemsetResponseModel
 import com.codeforcesvisualizer.shared.data.model.UserInfoResponseModel
 import com.codeforcesvisualizer.shared.data.model.UserRatingResponseModel
 import com.codeforcesvisualizer.shared.data.model.UserStatusResponseModel
@@ -40,6 +42,10 @@ class CFApiService(
         return httpClient.get(USER_RATINGS_URL) {
             parameter("handle", handle)
         }.toCFApiResponse()
+    }
+
+    suspend fun getProblemset(): CFApiResponse<ProblemsetResponseModel> {
+        return httpClient.get(PROBLEMSET_PROBLEMS_URL).toCFApiResponse()
     }
 }
 

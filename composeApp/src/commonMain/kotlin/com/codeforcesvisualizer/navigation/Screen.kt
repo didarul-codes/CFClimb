@@ -24,6 +24,7 @@ internal sealed class LeafScreen(val route: String) {
 
     object ContestList : LeafScreen("contest")
     object ContestSearch : LeafScreen("contest/search")
+    object Upsolve : LeafScreen("upsolve")
     object ContestDetails : LeafScreen("contest/{contestId}") {
         fun createRoute(root: Screen, contestId: Int): String {
             return "${root.route}/contest/$contestId"

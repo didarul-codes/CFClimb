@@ -1,6 +1,10 @@
 package com.codeforcesvisualizer.navigation
 
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
+import com.codeforcesvisualizer.core.data.UserSettingsRepository
+import org.koin.compose.koinInject
 import androidx.navigation.NavController
 import androidx.navigation.NavGraphBuilder
 import androidx.navigation.NavType
@@ -35,9 +39,13 @@ private fun NavGraphBuilder.addProfileSearchScreen(
             type = NavType.StringType
         })
     ) { backStackEntry ->
+        // Without a handle in the route, the profile tab opens the saved handle.
+        val savedHandle by koinInject<UserSettingsRepository>().username.collectAsState(initial = null)
+        val routeHandle = backStackEntry.arguments?.read { getString("handle") } ?: ""
+        val initialHandle = routeHandle.ifBlank { savedHandle ?: return@composable }
         ProfileSearchScreen(
             modifier = Modifier,
-            initialHandle = backStackEntry.arguments?.read { getString("handle") } ?: "",
+            initialHandle = initialHandle,
             onNavigateBack = { navController.navigateUp() },
             onOpenWebSite = { problem ->
                 val (contestId, problemIndex) = problem.split("-")

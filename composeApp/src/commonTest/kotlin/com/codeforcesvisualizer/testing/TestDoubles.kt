@@ -20,6 +20,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.update
+import kotlin.time.Duration
 
 /**
  * Behaves like the offline-first repository: refreshes copy "remote" responses into an in-memory
@@ -92,6 +93,20 @@ class FakeCFRepository : CFRepository {
                 cache.update { it + (handle to result.data) }
                 Either.Right(Unit)
             }
+        }
+    }
+
+    /** What the next problemset refresh returns. */
+    var remoteProblemset: Either<AppError, List<Problem>> = Either.Right(emptyList())
+    val cachedProblemset = MutableStateFlow<List<Problem>?>(null)
+
+    override fun observeProblemset(): Flow<List<Problem>?> = cachedProblemset
+
+    override suspend fun refreshProblemset(maxAge: Duration): Either<AppError, Unit> = when (val result = remoteProblemset) {
+        is Either.Left -> Either.Left(result.data)
+        is Either.Right -> {
+            cachedProblemset.value = result.data
+            Either.Right(Unit)
         }
     }
 

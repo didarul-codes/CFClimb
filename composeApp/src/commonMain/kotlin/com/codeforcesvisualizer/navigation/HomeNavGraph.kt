@@ -1,12 +1,14 @@
 package com.codeforcesvisualizer.navigation
 
 import androidx.navigation.*
+import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.compose.composable
 import androidx.savedstate.read
 import com.codeforcesvisualizer.contest.details.ContestDetailsScreen
 import com.codeforcesvisualizer.contest.list.ContestListScreen
 import com.codeforcesvisualizer.contest.search.ContestSearchScreen
 import com.codeforcesvisualizer.shared.data.config.BASE_URL
+import com.codeforcesvisualizer.upsolve.UpsolveScreen
 import com.codeforcesvisualizer.webview.CFWebViewScreen
 
 internal fun NavGraphBuilder.addHomeTopLevel(
@@ -20,6 +22,7 @@ internal fun NavGraphBuilder.addHomeTopLevel(
         addContestSearch(navController, Screen.Home)
         addContestDetails(navController, Screen.Home)
         addWebView(navController, Screen.Home)
+        addUpsolve(navController, Screen.Home)
     }
 }
 
@@ -44,7 +47,36 @@ private fun NavGraphBuilder.addContestList(
                 val url = "$BASE_URL/contests/$contestId"
                 navController.navigate(LeafScreen.WebView.createRoute(root = root, link = url))
             },
+            openProfile = { handle ->
+                navController.navigate(LeafScreen.Profile.createRoute(Screen.Profile, handle))
+            },
+            openSettings = { navController.openSettingsTab() },
+            openUpsolve = { navController.navigate(LeafScreen.Upsolve.createRoute(root)) },
         )
+    }
+}
+
+private fun NavGraphBuilder.addUpsolve(
+    navController: NavController,
+    root: Screen
+) {
+    composable(route = LeafScreen.Upsolve.createRoute(root)) {
+        UpsolveScreen(
+            onNavigateBack = { navController.navigateUp() },
+            onOpenProblem = { url ->
+                navController.navigate(LeafScreen.WebView.createRoute(root = root, link = url))
+            },
+            onOpenSettings = { navController.openSettingsTab() },
+        )
+    }
+}
+
+/** Same as choosing settings in the bottom bar. */
+private fun NavController.openSettingsTab() {
+    navigate(Screen.More.route) {
+        popUpTo(graph.findStartDestination().id) { saveState = true }
+        launchSingleTop = true
+        restoreState = true
     }
 }
 

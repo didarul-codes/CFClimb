@@ -1,5 +1,7 @@
 package com.codeforcesvisualizer.inject
 
+import com.codeforcesvisualizer.climb.MyClimbViewModel
+import com.codeforcesvisualizer.upsolve.UpsolveViewModel
 import com.codeforcesvisualizer.core.data.RecentSearchRepository
 import com.codeforcesvisualizer.core.data.UserSettingsRepository
 import com.codeforcesvisualizer.compare.CompareHandlesViewModel
@@ -22,4 +24,6 @@ val viewModelModule = module {
     factory { CompareHandlesViewModel(get(), get(), get()) }
     factory<ThemeManager> { ThemeManagerViewModel(get(), get()) }
     factory { PreferenceViewModel() }
+    factory { MyClimbViewModel(get(), get(), get()) }
+    factory { UpsolveViewModel(get(), get(), get(), get(), get()) }
 }

@@ -20,6 +20,12 @@ internal object ApiFixtures {
 
     const val CONTEST_LIST = """{"status":"OK","result":[{"id":2261,"name":"Codeforces Round (Div. 1 + Div. 2)","type":"CF","phase":"BEFORE","frozen":false,"durationSeconds":10800,"startTimeSeconds":1792247700,"relativeTimeSeconds":-2788463},{"id":2264,"name":"Codeforces Round 1121 (Div. 2)","type":"CF","phase":"FINISHED","frozen":false,"durationSeconds":7200,"startTimeSeconds":1789319100,"relativeTimeSeconds":140137}]}"""
 
+    /**
+     * problemset.problems, trimmed to two problems. The acmsguru entry is added to cover a
+     * problem without a contestId.
+     */
+    const val PROBLEMSET = """{"status":"OK","result":{"problems":[{"contestId":2258,"index":"B1","name":"Carrot Chopdown (Easy Version)","type":"PROGRAMMING","points":750.0,"rating":900,"tags":["brute force","games","math"]},{"contestId":2255,"index":"A","name":"Hot Potatoes at the Fairy Warehouse","type":"PROGRAMMING","points":500.0,"rating":1200,"tags":["games","greedy","implementation"]},{"problemsetName":"acmsguru","index":"100","name":"A+B","type":"PROGRAMMING","tags":[]}],"problemStatistics":[{"contestId":2258,"index":"B1","solvedCount":17543},{"contestId":2255,"index":"A","solvedCount":9120}]}}"""
+
     /** Returned with HTTP 400. */
     const val USER_STATUS_NOT_FOUND = """{"status":"FAILED","comment":"handle: User with handle zz_no_such_handle_zz not found"}"""
 }

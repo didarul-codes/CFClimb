@@ -3,10 +3,13 @@ package com.codeforcesvisualizer.shared.domain.repository
 import com.codeforcesvisualizer.shared.core.AppError
 import com.codeforcesvisualizer.shared.core.Either
 import com.codeforcesvisualizer.shared.domain.entity.Contest
+import com.codeforcesvisualizer.shared.domain.entity.Problem
 import com.codeforcesvisualizer.shared.domain.entity.User
 import com.codeforcesvisualizer.shared.domain.entity.UserRating
 import com.codeforcesvisualizer.shared.domain.entity.UserStatus
 import kotlinx.coroutines.flow.Flow
+import kotlin.time.Duration
+import kotlin.time.Duration.Companion.hours
 
 /**
  * The local database is the source of truth: screens observe cached data, and refresh calls
@@ -44,4 +47,13 @@ interface CFRepository {
 
     /** Fetches fresh data; when the request fails, returns cached data if there is any. */
     suspend fun getUserRatingByHandle(handle: String): Either<AppError, List<UserRating>>
+
+    /** Every contest problem on Codeforces; null until fetched once. */
+    fun observeProblemset(): Flow<List<Problem>?>
+
+    /**
+     * Fetches the problemset unless it was fetched within [maxAge]. It's large and changes about
+     * once per round, so a daily refresh is enough.
+     */
+    suspend fun refreshProblemset(maxAge: Duration = 24.hours): Either<AppError, Unit>
 }

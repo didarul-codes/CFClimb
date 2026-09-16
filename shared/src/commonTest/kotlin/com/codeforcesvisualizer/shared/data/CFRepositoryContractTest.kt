@@ -14,6 +14,7 @@ import kotlin.test.assertEquals
 import kotlin.test.assertIs
 import kotlin.test.assertNull
 import kotlin.test.assertTrue
+import kotlin.time.Duration
 
 /**
  * Runs recorded Codeforces responses through the real HTTP client, data source, repository and
@@ -118,5 +119,31 @@ class CFRepositoryContractTest : DatabaseTest() {
         codeforces.stub("user.info", "", HttpStatusCode.ServiceUnavailable)
 
         assertIs<ServerConnectionResponseError>(repository.getUserInfoByHandle("tourist").error())
+    }
+
+    @Test
+    fun problemsetKeepsContestProblemsWithRatingAndTags() = runTest {
+        assertNull(repository.observeProblemset().first())
+        codeforces.stub("problemset.problems", ApiFixtures.PROBLEMSET)
+
+        repository.refreshProblemset().value()
+
+        val problems = repository.observeProblemset().first().orEmpty()
+        assertEquals(listOf("2255-A", "2258-B1"), problems.map { it.key }.sorted())
+        val carrot = problems.single { it.key == "2258-B1" }
+        assertEquals(900, carrot.rating)
+        assertEquals(listOf("brute force", "games", "math"), carrot.tags)
+    }
+
+    @Test
+    fun problemsetIsFetchedAtMostOncePerDay() = runTest {
+        codeforces.stub("problemset.problems", ApiFixtures.PROBLEMSET)
+
+        repository.refreshProblemset().value()
+        repository.refreshProblemset().value()
+        assertEquals(1, codeforces.requests.size)
+
+        repository.refreshProblemset(maxAge = Duration.ZERO).value()
+        assertEquals(2, codeforces.requests.size)
     }
 }

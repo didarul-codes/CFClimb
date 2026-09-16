@@ -36,6 +36,35 @@ abstract class ContestDao {
 }
 
 @Dao
+abstract class ProblemDao {
+    @Query("SELECT * FROM problems")
+    abstract fun observeAll(): Flow<List<ProblemEntity>>
+
+    @Query("SELECT * FROM fetch_times WHERE `key` = :key")
+    abstract fun observeFetchTime(key: String): Flow<FetchTimeEntity?>
+
+    @Query("SELECT * FROM fetch_times WHERE `key` = :key")
+    abstract suspend fun fetchTime(key: String): FetchTimeEntity?
+
+    /** Swaps the whole problemset in one transaction, so observers never see it half-written. */
+    @Transaction
+    open suspend fun replaceAll(problems: List<ProblemEntity>, fetchTime: FetchTimeEntity) {
+        deleteAll()
+        upsertAll(problems)
+        upsertFetchTime(fetchTime)
+    }
+
+    @Query("DELETE FROM problems")
+    protected abstract suspend fun deleteAll()
+
+    @Upsert
+    protected abstract suspend fun upsertAll(problems: List<ProblemEntity>)
+
+    @Upsert
+    protected abstract suspend fun upsertFetchTime(fetchTime: FetchTimeEntity)
+}
+
+@Dao
 abstract class ProfileDao {
     @Query("SELECT * FROM users WHERE handleKey = :handleKey")
     abstract fun observeUser(handleKey: String): Flow<UserEntity?>

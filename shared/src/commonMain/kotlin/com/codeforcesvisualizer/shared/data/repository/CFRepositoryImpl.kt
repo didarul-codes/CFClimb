@@ -7,6 +7,8 @@ import com.codeforcesvisualizer.shared.core.MatchingDataNotFoundError
 import com.codeforcesvisualizer.shared.data.datasource.CFRemoteDataSource
 import com.codeforcesvisualizer.shared.data.local.ContestDao
 import com.codeforcesvisualizer.shared.data.local.FetchTimeEntity
+import com.codeforcesvisualizer.shared.data.local.PROBLEMSET_FETCH_KEY
+import com.codeforcesvisualizer.shared.data.local.ProblemDao
 import com.codeforcesvisualizer.shared.data.local.ProfileDao
 import com.codeforcesvisualizer.shared.data.local.handleKey
 import com.codeforcesvisualizer.shared.data.local.ratingsFetchKey
@@ -14,6 +16,7 @@ import com.codeforcesvisualizer.shared.data.local.submissionsFetchKey
 import com.codeforcesvisualizer.shared.data.local.toDomain
 import com.codeforcesvisualizer.shared.data.local.toRow
 import com.codeforcesvisualizer.shared.domain.entity.Contest
+import com.codeforcesvisualizer.shared.domain.entity.Problem
 import com.codeforcesvisualizer.shared.domain.entity.User
 import com.codeforcesvisualizer.shared.domain.entity.UserRating
 import com.codeforcesvisualizer.shared.domain.entity.UserStatus
@@ -23,11 +26,13 @@ import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import kotlinx.datetime.Clock
+import kotlin.time.Duration
 
 class CFRepositoryImpl(
     private val cfRemoteDataSource: CFRemoteDataSource,
     private val contestDao: ContestDao,
     private val profileDao: ProfileDao,
+    private val problemDao: ProblemDao,
     private val clock: Clock = Clock.System
 ) : CFRepository {
 
@@ -131,6 +136,33 @@ class CFRepositoryImpl(
 
     override suspend fun getUserRatingByHandle(handle: String): Either<AppError, List<UserRating>> {
         return refreshThenRead(refreshUserRatings(handle)) { observeUserRatings(handle).first() }
+    }
+
+    override fun observeProblemset(): Flow<List<Problem>?> {
+        return combine(
+            problemDao.observeAll(),
+            problemDao.observeFetchTime(PROBLEMSET_FETCH_KEY)
+        ) { rows, fetchTime ->
+            if (fetchTime == null) null else rows.map { it.toDomain() }
+        }
+    }
+
+    override suspend fun refreshProblemset(maxAge: Duration): Either<AppError, Unit> {
+        val now = clock.now().epochSeconds
+        val lastFetch = problemDao.fetchTime(PROBLEMSET_FETCH_KEY)
+        if (lastFetch != null && now - lastFetch.fetchedAtEpochSeconds < maxAge.inWholeSeconds) {
+            return Either.Right(Unit)
+        }
+        return when (val data = cfRemoteDataSource.getProblemset()) {
+            is Either.Left -> Either.Left(data.data)
+            is Either.Right -> {
+                problemDao.replaceAll(
+                    problems = data.data.toEntity().mapNotNull { it.toRow() },
+                    fetchTime = FetchTimeEntity(PROBLEMSET_FETCH_KEY, now)
+                )
+                Either.Right(Unit)
+            }
+        }
     }
 
     private suspend fun <T : Any> refreshThenRead(

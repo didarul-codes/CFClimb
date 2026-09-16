@@ -38,7 +38,8 @@ internal class FakeCodeforces(database: CFDatabase) {
             throttle = RequestThrottle(minInterval = Duration.ZERO)
         ),
         contestDao = database.contestDao(),
-        profileDao = database.profileDao()
+        profileDao = database.profileDao(),
+        problemDao = database.problemDao()
     )
 
     /** Answers calls to the API [method], e.g. "user.info", with [body]. */

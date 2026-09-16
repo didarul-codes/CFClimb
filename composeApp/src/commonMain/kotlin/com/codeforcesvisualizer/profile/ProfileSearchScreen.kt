@@ -35,6 +35,7 @@ import coil3.compose.AsyncImage
 import com.codeforcesvisualizer.core.EventLogger
 import com.codeforcesvisualizer.core.components.RecentSearchesSection
 import com.codeforcesvisualizer.core.components.CFCard
+import com.codeforcesvisualizer.climb.tierProgress
 import com.codeforcesvisualizer.core.components.CFLoadingIndicator
 import com.codeforcesvisualizer.core.components.ErrorState
 import com.codeforcesvisualizer.core.components.OfflineBanner
@@ -402,21 +403,8 @@ private fun HypeBanner(
 
     // Calculate rating needed for next rank
     val nextRankInfo = remember(user.rating) {
-        val tiers = listOf(
-            1200 to "pupil",
-            1400 to "specialist",
-            1600 to "expert",
-            1900 to "candidate master",
-            2100 to "master",
-            2300 to "international master",
-            2400 to "grandmaster",
-            2600 to "international grandmaster",
-            3000 to "legendary grandmaster"
-        )
-        tiers.firstOrNull { it.first > user.rating }?.let { (threshold, name) ->
-            val needed = threshold - user.rating
-            "+$needed to $name"
-        }
+        val progress = tierProgress(user.rating)
+        progress.nextTier?.let { "+${progress.pointsToNext} to ${it.name}" }
     }
 
     if (streak == 0 && nextRankInfo == null) return

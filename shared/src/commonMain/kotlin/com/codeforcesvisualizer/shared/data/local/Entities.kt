@@ -83,6 +83,20 @@ data class SubmissionEntity(
     val problemTags: List<String>,
 )
 
+/** A problem from the Codeforces problemset. Only problems that belong to a contest are kept. */
+@Entity(
+    tableName = "problems",
+    primaryKeys = ["contestId", "index"],
+    indices = [Index("contestId")],
+)
+data class ProblemEntity(
+    val contestId: Int,
+    val index: String,
+    val name: String,
+    val rating: Int?,
+    val tags: List<String>,
+)
+
 /**
  * When a cached collection was last fetched. Its presence tells "never loaded" apart from
  * "loaded, and empty" (a user with no rated contests).

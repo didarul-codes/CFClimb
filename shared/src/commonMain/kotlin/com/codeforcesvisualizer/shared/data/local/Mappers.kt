@@ -14,6 +14,8 @@ internal fun ratingsFetchKey(handleKey: String) = "ratings:$handleKey"
 
 internal fun submissionsFetchKey(handleKey: String) = "submissions:$handleKey"
 
+internal const val PROBLEMSET_FETCH_KEY = "problemset"
+
 internal fun Contest.toRow() = ContestEntity(
     id = id,
     name = name,
@@ -143,4 +145,18 @@ internal fun SubmissionEntity.toDomain() = UserStatus(
         rating = problemRating,
         tags = problemTags,
     ),
+)
+
+/** Null for problems outside a contest, such as acmsguru, which the app doesn't list. */
+internal fun Problem.toRow(): ProblemEntity? = contestId?.let { id ->
+    ProblemEntity(contestId = id, index = index, name = name, rating = rating, tags = tags)
+}
+
+internal fun ProblemEntity.toDomain() = Problem(
+    contestId = contestId,
+    problemsetName = null,
+    index = index,
+    name = name,
+    rating = rating,
+    tags = tags,
 )

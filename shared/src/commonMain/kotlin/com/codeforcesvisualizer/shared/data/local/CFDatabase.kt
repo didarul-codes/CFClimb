@@ -23,14 +23,16 @@ const val DATABASE_FILE_NAME = "cfclimb.db"
         RatingChangeEntity::class,
         SubmissionEntity::class,
         FetchTimeEntity::class,
+        ProblemEntity::class,
     ],
-    version = 1,
+    version = 2,
 )
 @TypeConverters(StringListConverter::class)
 @ConstructedBy(CFDatabaseConstructor::class)
 abstract class CFDatabase : RoomDatabase() {
     abstract fun contestDao(): ContestDao
     abstract fun profileDao(): ProfileDao
+    abstract fun problemDao(): ProblemDao
 }
 
 // Room generates the actual implementations for each platform.

@@ -23,11 +23,13 @@ val appModule = module {
     single { buildCFDatabase(createDatabaseBuilder()) }
     single { get<CFDatabase>().contestDao() }
     single { get<CFDatabase>().profileDao() }
+    single { get<CFDatabase>().problemDao() }
     single<CFRepository> {
         CFRepositoryImpl(
             cfRemoteDataSource = get(),
             contestDao = get(),
-            profileDao = get()
+            profileDao = get(),
+            problemDao = get()
         )
     }
     single<ThemeRepository> { ThemeRepositoryImpl() }

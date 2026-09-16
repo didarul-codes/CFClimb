@@ -6,6 +6,7 @@ import com.codeforcesvisualizer.shared.core.InvalidApiResponseError
 import com.codeforcesvisualizer.shared.core.ServerConnectionResponseError
 import com.codeforcesvisualizer.shared.data.model.BaseResponseModel
 import com.codeforcesvisualizer.shared.data.model.ContestListResponseModel
+import com.codeforcesvisualizer.shared.data.model.ProblemsetResponseModel
 import com.codeforcesvisualizer.shared.data.model.StatusModel
 import com.codeforcesvisualizer.shared.data.model.UserInfoResponseModel
 import com.codeforcesvisualizer.shared.data.model.UserRatingResponseModel
@@ -24,6 +25,7 @@ interface CFRemoteDataSource {
     suspend fun getUserInfoByHandle(handle: String): Either<AppError, UserInfoResponseModel>
     suspend fun getUserStatusByHandle(handle: String): Either<AppError, UserStatusResponseModel>
     suspend fun getUserRatingByHandle(handle: String): Either<AppError, UserRatingResponseModel>
+    suspend fun getProblemset(): Either<AppError, ProblemsetResponseModel>
 }
 
 class CFRemoteDataSourceImpl(
@@ -54,6 +56,13 @@ class CFRemoteDataSourceImpl(
     override suspend fun getUserRatingByHandle(handle: String): Either<AppError, UserRatingResponseModel> {
         return executeRequest(
             request = { api.getUserRatingByHandle(handle) },
+            hasValidResult = { it.result != null }
+        )
+    }
+
+    override suspend fun getProblemset(): Either<AppError, ProblemsetResponseModel> {
+        return executeRequest(
+            request = { api.getProblemset() },
             hasValidResult = { it.result != null }
         )
     }
