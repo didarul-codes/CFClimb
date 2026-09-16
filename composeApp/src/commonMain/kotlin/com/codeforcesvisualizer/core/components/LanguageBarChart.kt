@@ -11,7 +11,6 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.Immutable
@@ -21,11 +20,11 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
-import androidx.compose.ui.text.TextStyle
-import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import com.codeforcesvisualizer.core.theme.CFThemeColors
+import com.codeforcesvisualizer.core.theme.CFText
+import com.codeforcesvisualizer.core.theme.CFShapes
+import androidx.compose.ui.unit.sp
 
 @Immutable
 data class LanguageData(
@@ -51,7 +50,7 @@ fun LanguageBarChart(
             modifier = Modifier
                 .fillMaxWidth()
                 .height(10.dp)
-                .clip(RoundedCornerShape(3.dp))
+                .clip(CFShapes.bar)
         ) {
             val barHeight = size.height
             val totalWidth = size.width
@@ -102,11 +101,7 @@ fun LanguageBarChart(
                     Spacer(modifier = Modifier.width(4.dp))
                     Text(
                         text = "${lang.name} ${lang.percentage.toInt()}%",
-                        style = TextStyle(
-                            fontFamily = FontFamily.Monospace,
-                            fontSize = 9.sp,
-                            color = colors.dim,
-                        ),
+                        style = CFText.micro.copy(color = colors.dim),
                     )
                 }
             }

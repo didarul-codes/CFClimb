@@ -13,15 +13,15 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.text.TextStyle
-import androidx.compose.ui.text.font.FontFamily
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import com.codeforcesvisualizer.core.theme.CFThemeColors
 import com.codeforcesvisualizer.core.theme.rankColorFor
+import com.codeforcesvisualizer.core.theme.CFText
+import com.codeforcesvisualizer.core.theme.bold
+import com.codeforcesvisualizer.core.theme.CFAlpha
+import androidx.compose.ui.unit.sp
 
 enum class RankBadgeSize { Large, Small }
 
@@ -34,8 +34,8 @@ fun RankBadge(
 ) {
     val colors = CFThemeColors.current
     val tierColor = rankColorFor(rating)
-    val bgColor = tierColor.copy(alpha = 0x22 / 255f)
-    val borderColor = tierColor.copy(alpha = 0x55 / 255f)
+    val bgColor = tierColor.copy(alpha = CFAlpha.FILL)
+    val borderColor = tierColor.copy(alpha = CFAlpha.BORDER)
 
     val pillRadius = when (size) {
         RankBadgeSize.Large -> 20.dp
@@ -45,17 +45,17 @@ fun RankBadge(
         RankBadgeSize.Large -> 26.dp
         RankBadgeSize.Small -> 18.dp
     }
-    val ratingFontSize = when (size) {
-        RankBadgeSize.Large -> 13.sp
-        RankBadgeSize.Small -> 10.sp
+    val ratingStyle = when (size) {
+        RankBadgeSize.Large -> CFText.subtitle.bold()
+        RankBadgeSize.Small -> CFText.caption.bold()
     }
-    val rankFontSize = when (size) {
-        RankBadgeSize.Large -> 11.sp
-        RankBadgeSize.Small -> 9.sp
+    val rankStyle = when (size) {
+        RankBadgeSize.Large -> CFText.label
+        RankBadgeSize.Small -> CFText.micro
     }
-    val circleFontSize = when (size) {
-        RankBadgeSize.Large -> 11.sp
-        RankBadgeSize.Small -> 8.sp
+    val initialStyle = when (size) {
+        RankBadgeSize.Large -> CFText.label.bold()
+        RankBadgeSize.Small -> CFText.nano.bold()
     }
     val pillShape = RoundedCornerShape(pillRadius)
 
@@ -76,13 +76,7 @@ fun RankBadge(
         ) {
             Text(
                 text = rating.toString().take(1),
-                style = TextStyle(
-                    fontFamily = FontFamily.Monospace,
-                    fontWeight = FontWeight.Bold,
-                    fontSize = circleFontSize,
-                    color = colors.bg,
-                    textAlign = TextAlign.Center,
-                ),
+                style = initialStyle.copy(color = colors.bg, textAlign = TextAlign.Center),
             )
         }
 
@@ -90,23 +84,14 @@ fun RankBadge(
 
         Text(
             text = rating.toString(),
-            style = TextStyle(
-                fontFamily = FontFamily.Monospace,
-                fontWeight = FontWeight.Bold,
-                fontSize = ratingFontSize,
-                color = tierColor,
-            ),
+            style = ratingStyle.copy(color = tierColor),
         )
 
         WidthSpacer(width = 6.dp)
 
         Text(
             text = rank.lowercase(),
-            style = TextStyle(
-                fontFamily = FontFamily.Monospace,
-                fontSize = rankFontSize,
-                color = colors.dim,
-            ),
+            style = rankStyle.copy(color = colors.dim),
             maxLines = 1,
             overflow = TextOverflow.Ellipsis,
         )

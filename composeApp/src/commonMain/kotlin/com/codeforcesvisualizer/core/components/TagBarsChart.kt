@@ -14,13 +14,12 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.AnnotatedString
-import androidx.compose.ui.text.TextStyle
-import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.rememberTextMeasurer
 import androidx.compose.ui.text.drawText
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import com.codeforcesvisualizer.core.theme.CFThemeColors
+import com.codeforcesvisualizer.core.theme.CFText
+import androidx.compose.ui.unit.sp
 
 @Immutable
 data class TagData(
@@ -45,16 +44,8 @@ fun TagBarsChart(
         displayTags.maxOfOrNull { it.count } ?: 1
     }
 
-    val labelStyle = TextStyle(
-        fontFamily = FontFamily.Monospace,
-        fontSize = 10.5.sp,
-        color = colors.fg,
-    )
-    val countStyle = TextStyle(
-        fontFamily = FontFamily.Monospace,
-        fontSize = 10.5.sp,
-        color = colors.dim,
-    )
+    val labelStyle = CFText.label.copy(color = colors.fg)
+    val countStyle = CFText.label.copy(color = colors.dim)
 
     val rowHeight = 32.dp
     val barHeight = 4.dp

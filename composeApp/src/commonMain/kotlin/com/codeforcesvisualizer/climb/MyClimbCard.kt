@@ -10,29 +10,28 @@ import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.semantics.Role
-import androidx.compose.ui.text.TextStyle
-import androidx.compose.ui.text.font.FontFamily
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import com.codeforcesvisualizer.core.components.CFCard
 import com.codeforcesvisualizer.core.components.HeightSpacer
 import com.codeforcesvisualizer.core.components.RetryButton
 import com.codeforcesvisualizer.core.components.WidthSpacer
 import com.codeforcesvisualizer.core.theme.CFThemeColors
 import org.koin.compose.viewmodel.koinViewModel
+import com.codeforcesvisualizer.core.theme.CFText
+import com.codeforcesvisualizer.core.theme.bold
+import com.codeforcesvisualizer.core.theme.CFShapes
+import androidx.compose.runtime.getValue
+import androidx.compose.ui.unit.sp
 
-private val CardShape = RoundedCornerShape(12.dp)
+private val CardShape = CFShapes.card
 
 /** The saved handle's rating, tier progress and week, or a prompt to save a handle. */
 @Composable
@@ -97,7 +96,7 @@ private fun ClimbDetails(
         if (progress == null || summary.rating == null) {
             Text(
                 text = "unrated",
-                style = TextStyle(fontFamily = FontFamily.Monospace, fontWeight = FontWeight.Bold, fontSize = 22.sp, color = colors.fg),
+                style = CFText.heading.copy(color = colors.fg),
             )
             ClimbText(text = "Play a rated round to get your first rating.", color = colors.dim)
         } else {
@@ -105,23 +104,18 @@ private fun ClimbDetails(
             Row(verticalAlignment = Alignment.Bottom) {
                 Text(
                     text = summary.rating.toString(),
-                    style = TextStyle(fontFamily = FontFamily.Monospace, fontWeight = FontWeight.Bold, fontSize = 26.sp, color = tierColor),
+                    style = CFText.display.copy(color = tierColor),
                 )
                 WidthSpacer(width = 8.dp)
                 Text(
                     text = progress.tier.name,
-                    style = TextStyle(fontFamily = FontFamily.Monospace, fontSize = 12.sp, color = tierColor),
+                    style = CFText.body.copy(color = tierColor),
                     modifier = Modifier.padding(bottom = 4.dp).weight(1f),
                 )
                 summary.lastChange?.let { change ->
                     Text(
                         text = if (change >= 0) "+$change" else "$change",
-                        style = TextStyle(
-                            fontFamily = FontFamily.Monospace,
-                            fontWeight = FontWeight.Bold,
-                            fontSize = 12.sp,
-                            color = if (change >= 0) colors.green else colors.red,
-                        ),
+                        style = CFText.body.bold().copy(color = if (change >= 0) colors.green else colors.red),
                         modifier = Modifier.padding(bottom = 4.dp),
                     )
                 }
@@ -146,7 +140,7 @@ private fun ClimbDetails(
             HeightSpacer(height = 8.dp)
             Text(
                 text = "$ upsolve queue →",
-                style = TextStyle(fontFamily = FontFamily.Monospace, fontWeight = FontWeight.Bold, fontSize = 11.sp, color = colors.violet),
+                style = CFText.label.bold().copy(color = colors.violet),
                 modifier = Modifier
                     .clickable(role = Role.Button, onClick = onOpenUpsolve)
                     .padding(vertical = 6.dp),
@@ -161,7 +155,7 @@ private fun TierBar(fraction: Float, color: Color, track: Color) {
         modifier = Modifier
             .fillMaxWidth()
             .height(6.dp)
-            .clip(RoundedCornerShape(3.dp))
+            .clip(CFShapes.bar)
             .background(track),
     ) {
         Box(
@@ -178,11 +172,11 @@ private fun ClimbStat(label: String, value: String, color: Color, modifier: Modi
     Column(modifier = modifier) {
         Text(
             text = label.uppercase(),
-            style = TextStyle(fontFamily = FontFamily.Monospace, fontSize = 9.sp, letterSpacing = 0.08.sp, color = CFThemeColors.current.dim),
+            style = CFText.micro.copy(color = CFThemeColors.current.dim),
         )
         Text(
             text = value,
-            style = TextStyle(fontFamily = FontFamily.Monospace, fontWeight = FontWeight.Bold, fontSize = 13.sp, color = color),
+            style = CFText.subtitle.copy(color = color),
         )
     }
 }
@@ -191,12 +185,7 @@ private fun ClimbStat(label: String, value: String, color: Color, modifier: Modi
 private fun ClimbText(text: String, color: Color, bold: Boolean = false) {
     Text(
         text = text,
-        style = TextStyle(
-            fontFamily = FontFamily.Monospace,
-            fontSize = 11.sp,
-            fontWeight = if (bold) FontWeight.Bold else FontWeight.Normal,
-            color = color,
-        ),
+        style = (if (bold) CFText.label.bold() else CFText.label).copy(color = color),
     )
 }
 

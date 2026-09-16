@@ -10,10 +10,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.State
 import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.text.TextStyle
-import androidx.compose.ui.text.font.FontFamily
-import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.unit.sp
 import com.codeforcesvisualizer.core.EventLogger
 import com.codeforcesvisualizer.core.components.CFLoadingIndicator
 import com.codeforcesvisualizer.core.components.ErrorState
@@ -21,6 +17,16 @@ import com.codeforcesvisualizer.core.components.OfflineBanner
 import com.codeforcesvisualizer.core.components.ScreenHeader
 import com.codeforcesvisualizer.core.theme.CFThemeColors
 import org.koin.compose.viewmodel.koinViewModel
+import com.codeforcesvisualizer.core.theme.CFText
+import com.codeforcesvisualizer.core.theme.bold
+import androidx.compose.ui.unit.sp
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.padding
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.unit.dp
+import com.codeforcesvisualizer.core.components.WidthSpacer
 
 @Composable
 fun ContestListScreen(
@@ -38,6 +44,7 @@ fun ContestListScreen(
         modifier = modifier,
         state = uiState,
         onRefresh = viewModel::refreshContestList,
+        openSearch = openSearch,
         openContestDetails = { contestId ->
             openContestDetails(contestId)
             EventLogger.logScreenView(
@@ -57,6 +64,7 @@ private fun ContestListScreenContent(
     modifier: Modifier = Modifier,
     state: State<ContestListUiState>,
     onRefresh: () -> Unit,
+    openSearch: () -> Unit,
     openContestDetails: (Int) -> Unit,
     openProfile: (String) -> Unit,
     openSettings: () -> Unit,
@@ -75,14 +83,23 @@ private fun ContestListScreenContent(
         ScreenHeader(
             prompt = "contests",
             title = "Contests",
-            trailing = when {
-                liveCount > 0 -> {
-                    { HeaderStatus(text = "● $liveCount live", color = colors.green) }
+            trailing = {
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    when {
+                        liveCount > 0 -> HeaderStatus(text = "● $liveCount live", color = colors.green)
+                        uiState.refreshError.isNotBlank() ->
+                            HeaderStatus(text = "● offline", color = colors.amber)
+                        else -> Unit
+                    }
+                    WidthSpacer(width = 10.dp)
+                    Text(
+                        text = "$ search",
+                        style = CFText.label.bold().copy(color = colors.violet),
+                        modifier = Modifier
+                            .clickable(role = Role.Button, onClick = openSearch)
+                            .padding(vertical = 4.dp),
+                    )
                 }
-                uiState.refreshError.isNotBlank() -> {
-                    { HeaderStatus(text = "● offline", color = colors.amber) }
-                }
-                else -> null
             },
         )
 
@@ -127,11 +144,6 @@ private fun ContestListScreenContent(
 private fun HeaderStatus(text: String, color: androidx.compose.ui.graphics.Color) {
     Text(
         text = text,
-        style = TextStyle(
-            fontFamily = FontFamily.Monospace,
-            fontWeight = FontWeight.Bold,
-            fontSize = 11.sp,
-            color = color,
-        ),
+        style = CFText.label.bold().copy(color = color),
     )
 }

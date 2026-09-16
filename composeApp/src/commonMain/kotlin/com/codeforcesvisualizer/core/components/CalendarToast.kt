@@ -7,24 +7,25 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.text.TextStyle
-import androidx.compose.ui.text.font.FontFamily
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import com.codeforcesvisualizer.core.platform.CalendarResult
 import com.codeforcesvisualizer.core.theme.CFThemeColors
+import com.codeforcesvisualizer.core.theme.CFText
+import com.codeforcesvisualizer.core.theme.bold
+import com.codeforcesvisualizer.core.theme.CFAlpha
+import com.codeforcesvisualizer.core.theme.CFShapes
+import androidx.compose.ui.unit.sp
+import com.codeforcesvisualizer.core.theme.CFSpace
 
 @Composable
 fun CalendarToast(result: CalendarResult, onDismiss: () -> Unit) {
     val colors = CFThemeColors.current
-    val shape = RoundedCornerShape(10.dp)
+    val shape = CFShapes.card
 
     val (symbol, message, accent) = when (result) {
         CalendarResult.Added -> Triple("✓", "Added to your calendar", colors.green)
@@ -43,28 +44,20 @@ fun CalendarToast(result: CalendarResult, onDismiss: () -> Unit) {
     ) {
         Box(
             modifier = Modifier
-                .padding(horizontal = 24.dp, vertical = 32.dp)
+                .padding(horizontal = CFSpace.wideGutter, vertical = 32.dp)
                 .clip(shape)
                 .background(colors.surface2)
-                .border(1.dp, accent.copy(alpha = 0.3f), shape)
+                .border(1.dp, accent.copy(alpha = CFAlpha.BORDER), shape)
                 .padding(horizontal = 20.dp, vertical = 14.dp),
         ) {
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Text(
                     text = symbol,
-                    style = TextStyle(
-                        fontSize = 14.sp,
-                        color = accent,
-                        fontWeight = FontWeight.Bold,
-                    ),
+                    style = CFText.subtitle.bold().copy(color = accent),
                 )
                 Text(
                     text = "  $message",
-                    style = TextStyle(
-                        fontFamily = FontFamily.Monospace,
-                        fontSize = 12.sp,
-                        color = colors.fg,
-                    ),
+                    style = CFText.body.copy(color = colors.fg),
                 )
             }
         }

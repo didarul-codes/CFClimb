@@ -18,15 +18,13 @@ import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.drawscope.Fill
 import androidx.compose.ui.text.AnnotatedString
-import androidx.compose.ui.text.TextStyle
-import androidx.compose.ui.text.font.FontFamily
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.rememberTextMeasurer
 import androidx.compose.ui.text.drawText
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import com.codeforcesvisualizer.core.theme.CFThemeColors
 import kotlin.math.min
+import com.codeforcesvisualizer.core.theme.CFText
+import androidx.compose.ui.unit.sp
 
 @Immutable
 data class VerdictDonutData(
@@ -105,12 +103,7 @@ fun VerdictDonut(
 
             // Center text: AC percentage
             val percentText = "$acPercent%"
-            val percentStyle = TextStyle(
-                fontFamily = FontFamily.Monospace,
-                fontWeight = FontWeight.Bold,
-                fontSize = 20.sp,
-                color = colors.fg,
-            )
+            val percentStyle = CFText.heading.copy(color = colors.fg)
             val percentMeasured = textMeasurer.measure(AnnotatedString(percentText), style = percentStyle)
             drawText(
                 textLayoutResult = percentMeasured,
@@ -121,12 +114,7 @@ fun VerdictDonut(
             )
 
             val labelText = "ACCEPTED"
-            val labelStyle = TextStyle(
-                fontFamily = FontFamily.Monospace,
-                fontWeight = FontWeight.Normal,
-                fontSize = 8.sp,
-                color = colors.dim,
-            )
+            val labelStyle = CFText.nano.copy(color = colors.dim)
             val labelMeasured = textMeasurer.measure(AnnotatedString(labelText), style = labelStyle)
             drawText(
                 textLayoutResult = labelMeasured,
@@ -178,16 +166,8 @@ private fun LegendRow(
             )
         }
 
-        val textStyle = TextStyle(
-            fontFamily = FontFamily.Monospace,
-            fontSize = 9.sp,
-            color = colors.fg,
-        )
-        val dimStyle = TextStyle(
-            fontFamily = FontFamily.Monospace,
-            fontSize = 9.sp,
-            color = colors.dim,
-        )
+        val textStyle = CFText.micro.copy(color = colors.fg)
+        val dimStyle = CFText.micro.copy(color = colors.dim)
 
         Canvas(modifier = Modifier.width(100.dp).height(14.dp)) {
             val verdictMeasured = textMeasurer.measure(AnnotatedString(verdict), style = textStyle)

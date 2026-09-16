@@ -5,15 +5,14 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.text.TextStyle
-import androidx.compose.ui.text.font.FontFamily
-import androidx.compose.ui.unit.sp
 import com.codeforcesvisualizer.core.components.CFCard
 import com.codeforcesvisualizer.core.components.TagBarsChart
 import com.codeforcesvisualizer.core.components.TagData
 import com.codeforcesvisualizer.core.theme.CFThemeColors
 import com.codeforcesvisualizer.shared.domain.entity.UserStatus
 import com.codeforcesvisualizer.shared.domain.stats.solvedTagCounts
+import com.codeforcesvisualizer.core.theme.CFText
+import androidx.compose.ui.unit.sp
 
 @Composable
 fun TagsCard(
@@ -34,11 +33,7 @@ fun TagsCard(
         titleRight = {
             Text(
                 text = "${tagCounts.size} tags",
-                style = TextStyle(
-                    fontFamily = FontFamily.Monospace,
-                    fontSize = 10.sp,
-                    color = colors.dim,
-                ),
+                style = CFText.caption.copy(color = colors.dim),
             )
         },
     ) {

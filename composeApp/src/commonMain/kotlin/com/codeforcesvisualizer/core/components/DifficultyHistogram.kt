@@ -10,15 +10,14 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.text.AnnotatedString
-import androidx.compose.ui.text.TextStyle
-import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.rememberTextMeasurer
 import androidx.compose.ui.text.drawText
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import com.codeforcesvisualizer.core.theme.CFThemeColors
 import com.codeforcesvisualizer.core.theme.rankColorFor
+import com.codeforcesvisualizer.core.theme.CFText
+import androidx.compose.ui.unit.sp
 
 @Immutable
 data class DifficultyBucket(
@@ -38,12 +37,7 @@ fun DifficultyHistogram(
         buckets.maxOfOrNull { it.count } ?: 1
     }
 
-    val labelStyle = TextStyle(
-        fontFamily = FontFamily.Monospace,
-        fontSize = 7.5.sp,
-        color = colors.dim,
-        textAlign = TextAlign.Center,
-    )
+    val labelStyle = CFText.nano.copy(color = colors.dim, textAlign = TextAlign.Center)
 
     Canvas(
         modifier = modifier

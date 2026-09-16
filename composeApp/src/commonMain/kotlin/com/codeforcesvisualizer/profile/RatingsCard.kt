@@ -1,20 +1,17 @@
 package com.codeforcesvisualizer.profile
 
-import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.padding
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.unit.dp
 import com.codeforcesvisualizer.core.components.CFCard
-import com.codeforcesvisualizer.core.components.HeightSpacer
 import com.codeforcesvisualizer.core.components.RatingLineChart
 import com.codeforcesvisualizer.core.components.RatingPoint
 import com.codeforcesvisualizer.core.components.RatingSeriesData
-import com.codeforcesvisualizer.core.components.StatBox
 import com.codeforcesvisualizer.core.theme.CFThemeColors
 import com.codeforcesvisualizer.shared.domain.entity.UserRating
+import androidx.compose.foundation.layout.padding
+import androidx.compose.ui.unit.dp
 
 @Composable
 fun RatingsCard(
@@ -43,11 +40,8 @@ fun RatingsCard(
                 val prefix = if (totalGain >= 0) "+" else ""
                 androidx.compose.material3.Text(
                     text = "$prefix$totalGain",
-                    style = androidx.compose.ui.text.TextStyle(
-                        fontFamily = androidx.compose.ui.text.font.FontFamily.Monospace,
-                        fontSize = androidx.compose.ui.unit.TextUnit(10f, androidx.compose.ui.unit.TextUnitType.Sp),
-                        color = if (totalGain >= 0) colors.green else colors.red,
-                    ),
+                    style = com.codeforcesvisualizer.core.theme.CFText.caption
+                        .copy(color = if (totalGain >= 0) colors.green else colors.red),
                 )
             }
         },

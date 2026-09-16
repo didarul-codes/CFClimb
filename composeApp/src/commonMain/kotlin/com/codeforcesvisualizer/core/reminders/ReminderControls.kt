@@ -10,31 +10,33 @@ import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.semantics.Role
-import androidx.compose.ui.text.TextStyle
-import androidx.compose.ui.text.font.FontFamily
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import com.codeforcesvisualizer.core.components.CFCard
 import com.codeforcesvisualizer.core.components.Chip
+import com.codeforcesvisualizer.core.components.SelectableChip
 import com.codeforcesvisualizer.core.components.HeightSpacer
 import com.codeforcesvisualizer.core.theme.CFThemeColors
 import com.codeforcesvisualizer.shared.domain.entity.Contest
 import kotlinx.coroutines.launch
 import org.koin.compose.koinInject
+import com.codeforcesvisualizer.core.theme.CFText
+import com.codeforcesvisualizer.core.theme.CFAlpha
+import com.codeforcesvisualizer.core.theme.CFShapes
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.unit.sp
+import com.codeforcesvisualizer.core.components.CFButton
+import com.codeforcesvisualizer.core.components.CFButtonSize
 
 /** Turns a reminder for an upcoming [contest] on or off, asking for notification permission first. */
 @Composable
@@ -52,38 +54,25 @@ fun ContestReminderButton(
     val colors = CFThemeColors.current
     val isOn = contest.id in remindedIds
     val accent = if (isOn) colors.green else colors.blue
-    val shape = RoundedCornerShape(10.dp)
+    val shape = CFShapes.control
 
     Column(modifier = modifier.fillMaxWidth()) {
-        Box(
-            modifier = Modifier
-                .fillMaxWidth()
-                .clip(shape)
-                .background(accent.copy(alpha = 0.15f))
-                .border(1.dp, accent.copy(alpha = 0.3f), shape)
-                .clickable(role = Role.Switch) {
-                    if (isOn) {
-                        scope.launch { reminders.setReminder(contest.id, enabled = false) }
-                    } else {
-                        requestPermission { granted ->
-                            notificationsBlocked = !granted
-                            if (granted) scope.launch { reminders.setReminder(contest.id, enabled = true) }
-                        }
+        CFButton(
+            text = if (isOn) "reminder on" else "remind me",
+            color = accent,
+            size = CFButtonSize.Large,
+            modifier = Modifier.fillMaxWidth(),
+            onClick = {
+                if (isOn) {
+                    scope.launch { reminders.setReminder(contest.id, enabled = false) }
+                } else {
+                    requestPermission { granted ->
+                        notificationsBlocked = !granted
+                        if (granted) scope.launch { reminders.setReminder(contest.id, enabled = true) }
                     }
                 }
-                .padding(vertical = 14.dp),
-            contentAlignment = Alignment.Center,
-        ) {
-            Text(
-                text = if (isOn) "$ reminder on" else "$ remind me",
-                style = TextStyle(
-                    fontFamily = FontFamily.Monospace,
-                    fontSize = 13.sp,
-                    fontWeight = FontWeight.Bold,
-                    color = accent,
-                ),
-            )
-        }
+            },
+        )
 
         val note = when {
             notificationsBlocked -> "Notifications are off for this app. Allow them in Settings to get reminders."
@@ -97,11 +86,7 @@ fun ContestReminderButton(
             HeightSpacer(height = 6.dp)
             Text(
                 text = note,
-                style = TextStyle(
-                    fontFamily = FontFamily.Monospace,
-                    fontSize = 10.sp,
-                    color = if (notificationsBlocked || leadTimes.isEmpty()) colors.amber else colors.dim,
-                ),
+                style = CFText.caption.copy(color = if (notificationsBlocked || leadTimes.isEmpty()) colors.amber else colors.dim),
             )
         }
     }
@@ -123,21 +108,13 @@ fun ReminderSettingsCard(modifier: Modifier = Modifier) {
         titleRight = {
             Text(
                 text = if (remindedIds.size == 1) "1 contest" else "${remindedIds.size} contests",
-                style = TextStyle(
-                    fontFamily = FontFamily.Monospace,
-                    fontSize = 10.sp,
-                    color = colors.dim,
-                ),
+                style = CFText.caption.copy(color = colors.dim),
             )
         },
     ) {
         Text(
             text = "notify me before a contest",
-            style = TextStyle(
-                fontFamily = FontFamily.Monospace,
-                fontSize = 11.sp,
-                color = colors.dim,
-            ),
+            style = CFText.label.copy(color = colors.dim),
         )
         HeightSpacer(height = 8.dp)
         FlowRow(
@@ -146,10 +123,9 @@ fun ReminderSettingsCard(modifier: Modifier = Modifier) {
         ) {
             ReminderLeadTime.entries.forEach { leadTime ->
                 val selected = leadTime in leadTimes
-                Chip(
-                    text = if (selected) "✓ ${leadTime.label}" else leadTime.label,
-                    color = if (selected) colors.violet else colors.dim,
-                    subtle = !selected,
+                SelectableChip(
+                    text = leadTime.label,
+                    selected = selected,
                     onClick = { scope.launch { reminders.setLeadTime(leadTime, enabled = !selected) } },
                 )
             }
@@ -158,11 +134,7 @@ fun ReminderSettingsCard(modifier: Modifier = Modifier) {
             HeightSpacer(height = 8.dp)
             Text(
                 text = "Pick at least one time to get reminders.",
-                style = TextStyle(
-                    fontFamily = FontFamily.Monospace,
-                    fontSize = 10.sp,
-                    color = colors.amber,
-                ),
+                style = CFText.caption.copy(color = colors.amber),
                 modifier = Modifier.padding(top = 2.dp),
             )
         }
@@ -173,11 +145,7 @@ fun ReminderSettingsCard(modifier: Modifier = Modifier) {
             if (exactAccess.allowed) {
                 Text(
                     text = "Exact timing is on.",
-                    style = TextStyle(
-                        fontFamily = FontFamily.Monospace,
-                        fontSize = 10.sp,
-                        color = colors.dim,
-                    ),
+                    style = CFText.caption.copy(color = colors.dim),
                 )
             } else {
                 Chip(
@@ -188,11 +156,7 @@ fun ReminderSettingsCard(modifier: Modifier = Modifier) {
                 HeightSpacer(height = 6.dp)
                 Text(
                     text = "Without it, reminders can arrive up to 10 min early, or late while the phone is idle.",
-                    style = TextStyle(
-                        fontFamily = FontFamily.Monospace,
-                        fontSize = 10.sp,
-                        color = colors.dim,
-                    ),
+                    style = CFText.caption.copy(color = colors.dim),
                 )
             }
         }

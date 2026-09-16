@@ -4,14 +4,17 @@ import android.annotation.SuppressLint
 import android.webkit.WebSettings
 import android.webkit.WebSettings.LOAD_DEFAULT
 import android.webkit.WebSettings.MIXED_CONTENT_COMPATIBILITY_MODE
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.LinearProgressIndicator
-import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
-import com.codeforcesvisualizer.core.components.CFAppBar
+import com.codeforcesvisualizer.core.components.ScreenHeader
+import com.codeforcesvisualizer.core.theme.CFThemeColors
 import com.kevinnzou.web.WebView
 import com.kevinnzou.web.rememberWebViewState
 
@@ -23,18 +26,19 @@ actual fun CFWebViewScreen(
     onNavigateBack: () -> Unit,
 ) {
     val state = rememberWebViewState(url = link)
-    val title = "Codeforces"
+    val colors = CFThemeColors.current
 
-    Scaffold(
-        modifier = modifier,
-        topBar = {
-            CFAppBar(
-                title = title,
-                onNavigateBack = onNavigateBack
-            )
-        }
-    ) { innerPadding ->
-        Box(modifier = Modifier.padding(innerPadding)) {
+    Column(
+        modifier = modifier
+            .fillMaxSize()
+            .background(colors.bg),
+    ) {
+        ScreenHeader(
+            prompt = "codeforces.com",
+            title = "Codeforces",
+            onNavigateBack = onNavigateBack,
+        )
+        Box(modifier = Modifier.weight(1f)) {
             WebView(
                 state = state,
                 onCreated = { webview ->

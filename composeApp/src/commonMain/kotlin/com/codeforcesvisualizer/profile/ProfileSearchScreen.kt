@@ -10,25 +10,18 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.text.TextStyle
-import androidx.compose.ui.text.font.FontFamily
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import codeforces_visualizer.composeapp.generated.resources.Res
 import codeforces_visualizer.composeapp.generated.resources.enter_handle_hint
 import coil3.compose.AsyncImage
@@ -40,27 +33,16 @@ import com.codeforcesvisualizer.core.components.CFLoadingIndicator
 import com.codeforcesvisualizer.core.components.ErrorState
 import com.codeforcesvisualizer.core.components.OfflineBanner
 import com.codeforcesvisualizer.core.components.Chip
-import com.codeforcesvisualizer.core.components.DifficultyBucket
-import com.codeforcesvisualizer.core.components.DifficultyHistogram
 import com.codeforcesvisualizer.core.components.HeatmapCell
 import com.codeforcesvisualizer.core.components.HeightSpacer
-import com.codeforcesvisualizer.core.components.LanguageBarChart
-import com.codeforcesvisualizer.core.components.LanguageData
 import com.codeforcesvisualizer.core.components.RankBadge
-import com.codeforcesvisualizer.core.components.RatingLineChart
-import com.codeforcesvisualizer.core.components.RatingPoint
-import com.codeforcesvisualizer.core.components.RatingSeriesData
 import com.codeforcesvisualizer.core.components.ScreenHeader
 import com.codeforcesvisualizer.core.components.SearchBar
 import com.codeforcesvisualizer.core.components.StatBox
 import com.codeforcesvisualizer.core.components.SubmissionHeatmap
-import com.codeforcesvisualizer.core.components.TagBarsChart
-import com.codeforcesvisualizer.core.components.TagData
-import com.codeforcesvisualizer.core.components.VerdictDonut
 import com.codeforcesvisualizer.core.components.WidthSpacer
 import com.codeforcesvisualizer.core.theme.CFThemeColors
 import com.codeforcesvisualizer.core.theme.VerdictColors
-import com.codeforcesvisualizer.core.theme.rankColorFor
 import com.codeforcesvisualizer.shared.domain.entity.User
 import com.codeforcesvisualizer.shared.domain.entity.UserRating
 import com.codeforcesvisualizer.shared.domain.entity.UserStatus
@@ -75,6 +57,15 @@ import kotlinx.datetime.TimeZone
 import kotlinx.datetime.toLocalDateTime
 import org.jetbrains.compose.resources.stringResource
 import org.koin.compose.viewmodel.koinViewModel
+import com.codeforcesvisualizer.core.theme.CFText
+import com.codeforcesvisualizer.core.theme.bold
+import com.codeforcesvisualizer.core.theme.CFAlpha
+import com.codeforcesvisualizer.core.theme.CFShapes
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.unit.sp
+import com.codeforcesvisualizer.core.theme.rankColorFor
+import com.codeforcesvisualizer.core.theme.CFSpace
 
 @Composable
 fun ProfileSearchScreen(
@@ -109,6 +100,12 @@ fun ProfileSearchScreen(
             .fillMaxSize()
             .background(colors.bg)
     ) {
+        val shownUser = userInfoUiState.user
+        ScreenHeader(
+            prompt = if (shownUser != null) "users/${shownUser.handle}" else "users",
+            title = if (shownUser != null) "@${shownUser.handle}" else "Profile",
+        )
+
         SearchBar(
             searchText = searchTextState,
             placeholderText = stringResource(Res.string.enter_handle_hint),
@@ -120,7 +117,6 @@ fun ProfileSearchScreen(
                 EventLogger.logEvent(event = "Search User")
             },
             onClearText = { viewModel.onSearchTextChanged("") },
-            onNavigateBack = onNavigateBack,
             requestFocusOnStart = initialHandle.isBlank()
         )
 
@@ -132,7 +128,7 @@ fun ProfileSearchScreen(
                     viewModel.search(handle)
                 },
                 onClearAll = { viewModel.clearRecentSearches() },
-                modifier = Modifier.padding(horizontal = 18.dp, vertical = 12.dp),
+                modifier = Modifier.padding(horizontal = CFSpace.gutter, vertical = 12.dp),
             )
         }
 
@@ -190,19 +186,11 @@ private fun ProfileContent(
         modifier = modifier.fillMaxSize(),
         verticalArrangement = Arrangement.spacedBy(14.dp)
     ) {
-        // Screen header
-        item {
-            ScreenHeader(
-                prompt = "users/${user.handle}",
-                title = "@${user.handle}"
-            )
-        }
-
         // Identity section
         item {
             IdentitySection(
                 user = user,
-                modifier = Modifier.padding(horizontal = 18.dp)
+                modifier = Modifier.padding(horizontal = CFSpace.gutter)
             )
         }
 
@@ -212,7 +200,7 @@ private fun ProfileContent(
                 HypeBanner(
                     user = user,
                     userRatings = userRatingList,
-                    modifier = Modifier.padding(horizontal = 18.dp)
+                    modifier = Modifier.padding(horizontal = CFSpace.gutter)
                 )
             }
         }
@@ -223,7 +211,7 @@ private fun ProfileContent(
                 StatGrid(
                     userStatusList = userStatusList,
                     userRatingList = userRatingList,
-                    modifier = Modifier.padding(horizontal = 18.dp)
+                    modifier = Modifier.padding(horizontal = CFSpace.gutter)
                 )
             }
         }
@@ -233,7 +221,7 @@ private fun ProfileContent(
             item {
                 RatingsCard(
                     userRatingList = userRatingList,
-                    modifier = Modifier.padding(horizontal = 18.dp)
+                    modifier = Modifier.padding(horizontal = CFSpace.gutter)
                 )
             }
         }
@@ -243,7 +231,7 @@ private fun ProfileContent(
             item {
                 VerdictCard(
                     userStatusList = userStatusList,
-                    modifier = Modifier.padding(horizontal = 18.dp)
+                    modifier = Modifier.padding(horizontal = CFSpace.gutter)
                 )
             }
         }
@@ -253,7 +241,7 @@ private fun ProfileContent(
             item {
                 SubmissionHeatmapCard(
                     userStatusList = userStatusList,
-                    modifier = Modifier.padding(horizontal = 18.dp)
+                    modifier = Modifier.padding(horizontal = CFSpace.gutter)
                 )
             }
         }
@@ -263,7 +251,7 @@ private fun ProfileContent(
             item {
                 TagsCard(
                     userStatusList = userStatusList,
-                    modifier = Modifier.padding(horizontal = 18.dp)
+                    modifier = Modifier.padding(horizontal = CFSpace.gutter)
                 )
             }
         }
@@ -273,7 +261,7 @@ private fun ProfileContent(
             item {
                 LevelsCard(
                     userStatusList = userStatusList,
-                    modifier = Modifier.padding(horizontal = 18.dp)
+                    modifier = Modifier.padding(horizontal = CFSpace.gutter)
                 )
             }
         }
@@ -283,7 +271,7 @@ private fun ProfileContent(
             item {
                 LanguageCard(
                     userStatusList = userStatusList,
-                    modifier = Modifier.padding(horizontal = 18.dp)
+                    modifier = Modifier.padding(horizontal = CFSpace.gutter)
                 )
             }
         }
@@ -293,7 +281,7 @@ private fun ProfileContent(
             item {
                 RecentActivityCard(
                     userStatusList = userStatusList,
-                    modifier = Modifier.padding(horizontal = 18.dp)
+                    modifier = Modifier.padding(horizontal = CFSpace.gutter)
                 )
             }
         }
@@ -327,7 +315,7 @@ private fun IdentitySection(
         Box(
             modifier = Modifier
                 .size(56.dp)
-                .clip(RoundedCornerShape(10.dp))
+                .clip(CFShapes.card)
                 .background(colors.surface2),
             contentAlignment = Alignment.Center
         ) {
@@ -338,17 +326,12 @@ private fun IdentitySection(
                     contentScale = ContentScale.Crop,
                     modifier = Modifier
                         .size(56.dp)
-                        .clip(RoundedCornerShape(10.dp))
+                        .clip(CFShapes.card)
                 )
             } else {
                 Text(
                     text = initials,
-                    style = TextStyle(
-                        fontFamily = FontFamily.Monospace,
-                        fontWeight = FontWeight.Bold,
-                        fontSize = 18.sp,
-                        color = colors.violet
-                    )
+                    style = CFText.heading.copy(color = colors.violet)
                 )
             }
         }
@@ -358,12 +341,7 @@ private fun IdentitySection(
         Column(modifier = Modifier.weight(1f)) {
             Text(
                 text = "${user.firstName} ${user.lastName}".trim().ifBlank { user.handle },
-                style = TextStyle(
-                    fontFamily = FontFamily.Monospace,
-                    fontWeight = FontWeight.Bold,
-                    fontSize = 16.sp,
-                    color = colors.fg
-                ),
+                style = CFText.title.copy(color = colors.fg),
                 maxLines = 1
             )
             HeightSpacer(height = 4.dp)
@@ -379,11 +357,7 @@ private fun IdentitySection(
 
             Text(
                 text = details,
-                style = TextStyle(
-                    fontFamily = FontFamily.Monospace,
-                    fontSize = 11.sp,
-                    color = colors.dim
-                )
+                style = CFText.label.copy(color = colors.dim)
             )
         }
     }
@@ -412,36 +386,27 @@ private fun HypeBanner(
     Row(
         modifier = modifier
             .fillMaxWidth()
-            .clip(RoundedCornerShape(8.dp))
-            .background(colors.amber.copy(alpha = 0.08f))
-            .padding(horizontal = 14.dp, vertical = 10.dp),
+            .clip(CFShapes.control)
+            .background(colors.amber.copy(alpha = CFAlpha.FILL_SUBTLE))
+            .padding(horizontal = CFSpace.card, vertical = 10.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
         Text(
             text = "🔥",
-            style = TextStyle(fontSize = 16.sp)
+            style = CFText.title
         )
         WidthSpacer(width = 8.dp)
         Column {
             if (streak > 0) {
                 Text(
                     text = "$streak contest win streak",
-                    style = TextStyle(
-                        fontFamily = FontFamily.Monospace,
-                        fontWeight = FontWeight.Bold,
-                        fontSize = 12.sp,
-                        color = colors.amber
-                    )
+                    style = CFText.body.bold().copy(color = colors.amber)
                 )
             }
             if (nextRankInfo != null) {
                 Text(
                     text = nextRankInfo,
-                    style = TextStyle(
-                        fontFamily = FontFamily.Monospace,
-                        fontSize = 11.sp,
-                        color = colors.dim
-                    )
+                    style = CFText.label.copy(color = colors.dim)
                 )
             }
         }
@@ -579,32 +544,20 @@ private fun RecentActivityCard(
                     Column(modifier = Modifier.weight(1f)) {
                         Text(
                             text = status.problem.name,
-                            style = TextStyle(
-                                fontFamily = FontFamily.Monospace,
-                                fontSize = 11.sp,
-                                color = colors.fg
-                            ),
+                            style = CFText.label.copy(color = colors.fg),
                             maxLines = 1
                         )
                         if (status.problem.tags.isNotEmpty()) {
                             Text(
                                 text = status.problem.tags.first(),
-                                style = TextStyle(
-                                    fontFamily = FontFamily.Monospace,
-                                    fontSize = 9.sp,
-                                    color = colors.dim
-                                )
+                                style = CFText.micro.copy(color = colors.dim)
                             )
                         }
                     }
 
                     Text(
                         text = status.problem.label,
-                        style = TextStyle(
-                            fontFamily = FontFamily.Monospace,
-                            fontSize = 10.sp,
-                            color = colors.dim
-                        )
+                        style = CFText.caption.copy(color = colors.dim)
                     )
                 }
             }

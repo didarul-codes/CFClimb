@@ -13,6 +13,7 @@ import com.codeforcesvisualizer.contest.list.ContestListItem
 import com.codeforcesvisualizer.contest.list.Header
 import com.codeforcesvisualizer.shared.domain.entity.Contest
 import org.jetbrains.compose.resources.stringResource
+import com.codeforcesvisualizer.core.theme.CFSpace
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
@@ -28,7 +29,7 @@ internal fun ContestSearchList(
         }
         items(contestList) { contest ->
             ContestListItem(
-                modifier = Modifier.padding(horizontal = 16.dp, vertical = 4.dp),
+                modifier = Modifier.padding(horizontal = CFSpace.gutter, vertical = 4.dp),
                 contest = contest,
                 isUpcoming = contest.scheduled,
                 onOpenContest = { contestId ->

@@ -16,15 +16,14 @@ import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.StrokeJoin
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.text.AnnotatedString
-import androidx.compose.ui.text.TextStyle
-import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.rememberTextMeasurer
 import androidx.compose.ui.text.drawText
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import com.codeforcesvisualizer.core.theme.CFThemeColors
 import com.codeforcesvisualizer.core.theme.RankTiers
+import com.codeforcesvisualizer.core.theme.CFText
+import androidx.compose.ui.unit.sp
 
 @Immutable
 data class RatingPoint(
@@ -59,11 +58,7 @@ fun RatingLineChart(
     val minIndex = remember(allIndices) { allIndices.minOrNull() ?: 0 }
     val maxIndex = remember(allIndices) { allIndices.maxOrNull() ?: 1 }
 
-    val labelStyle = TextStyle(
-        fontFamily = FontFamily.Monospace,
-        fontSize = 8.5.sp,
-        color = colors.dim,
-    )
+    val labelStyle = CFText.micro.copy(color = colors.dim)
 
     Canvas(
         modifier = modifier

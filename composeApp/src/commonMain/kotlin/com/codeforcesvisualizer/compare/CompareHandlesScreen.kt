@@ -13,25 +13,19 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.text.TextStyle
-import androidx.compose.ui.text.font.FontFamily
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import com.codeforcesvisualizer.core.components.CFCard
 import com.codeforcesvisualizer.core.components.Center
 import com.codeforcesvisualizer.core.components.HeightSpacer
@@ -49,6 +43,14 @@ import com.codeforcesvisualizer.shared.domain.entity.UserStatus
 import com.codeforcesvisualizer.shared.domain.stats.profileSummary
 import com.codeforcesvisualizer.shared.domain.stats.solvedTagCounts
 import org.koin.compose.viewmodel.koinViewModel
+import com.codeforcesvisualizer.core.theme.CFText
+import com.codeforcesvisualizer.core.theme.bold
+import com.codeforcesvisualizer.core.theme.normal
+import com.codeforcesvisualizer.core.theme.CFAlpha
+import com.codeforcesvisualizer.core.theme.CFShapes
+import androidx.compose.runtime.getValue
+import androidx.compose.ui.unit.sp
+import com.codeforcesvisualizer.core.theme.CFSpace
 
 @Composable
 fun CompareHandlesScreen(
@@ -74,12 +76,13 @@ fun CompareHandlesScreen(
         modifier = modifier
             .fillMaxSize()
             .background(colors.bg)
-            .padding(horizontal = 18.dp),
+            .padding(horizontal = CFSpace.gutter),
     ) {
         item {
             ScreenHeader(
                 prompt = "compare",
                 title = "$handleOne vs $handleTwo",
+                onNavigateBack = onNavigateBack,
             )
         }
 
@@ -101,11 +104,7 @@ fun CompareHandlesScreen(
                     ) {
                         Text(
                             text = errorMessage,
-                            style = TextStyle(
-                                fontFamily = FontFamily.Monospace,
-                                fontSize = 12.sp,
-                                color = colors.red,
-                            ),
+                            style = CFText.body.copy(color = colors.red),
                         )
                         HeightSpacer(height = 10.dp)
                         RetryButton(onClick = { viewModel.compare(handleOne, handleTwo) })
@@ -199,7 +198,7 @@ private fun WinnerHypeSection(
 
     val gradientBrush = Brush.horizontalGradient(
         colors = listOf(
-            winnerColor.copy(alpha = 0.15f),
+            winnerColor.copy(alpha = CFAlpha.FILL),
             winnerColor.copy(alpha = 0.05f),
         )
     )
@@ -207,34 +206,25 @@ private fun WinnerHypeSection(
     Box(
         modifier = Modifier
             .fillMaxWidth()
-            .clip(RoundedCornerShape(12.dp))
+            .clip(CFShapes.card)
             .background(gradientBrush)
             .border(
                 width = 1.dp,
-                color = winnerColor.copy(alpha = 0.3f),
-                shape = RoundedCornerShape(12.dp)
+                color = winnerColor.copy(alpha = CFAlpha.BORDER),
+                shape = CFShapes.card
             )
-            .padding(horizontal = 18.dp, vertical = 16.dp),
+            .padding(horizontal = CFSpace.gutter, vertical = 16.dp),
         contentAlignment = Alignment.CenterStart,
     ) {
         Column {
             Text(
                 text = "@$winner",
-                style = TextStyle(
-                    fontFamily = FontFamily.Monospace,
-                    fontWeight = FontWeight.Bold,
-                    fontSize = 20.sp,
-                    color = winnerColor,
-                ),
+                style = CFText.heading.copy(color = winnerColor),
             )
             HeightSpacer(height = 4.dp)
             Text(
                 text = "+$margin rating gap",
-                style = TextStyle(
-                    fontFamily = FontFamily.Monospace,
-                    fontSize = 12.sp,
-                    color = colors.dim,
-                ),
+                style = CFText.body.copy(color = colors.dim),
             )
         }
     }
@@ -274,11 +264,7 @@ private fun RatingChartCard(
             Center(modifier = Modifier.padding(vertical = 32.dp)) {
                 Text(
                     text = "not enough rating history to plot",
-                    style = TextStyle(
-                        fontFamily = FontFamily.Monospace,
-                        fontSize = 11.sp,
-                        color = colors.dim,
-                    ),
+                    style = CFText.label.copy(color = colors.dim),
                 )
             }
         }
@@ -310,11 +296,7 @@ private fun LegendDot(color: Color, label: String) {
         WidthSpacer(width = 6.dp)
         Text(
             text = "@$label",
-            style = TextStyle(
-                fontFamily = FontFamily.Monospace,
-                fontSize = 10.sp,
-                color = colors.dim,
-            ),
+            style = CFText.caption.copy(color = colors.dim),
         )
     }
 }
@@ -362,37 +344,23 @@ private fun HeadToHeadCard(
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(horizontal = 14.dp, vertical = 8.dp),
+                .padding(horizontal = CFSpace.card, vertical = 8.dp),
             horizontalArrangement = Arrangement.SpaceBetween,
         ) {
             Text(
                 text = "@$handle1",
-                style = TextStyle(
-                    fontFamily = FontFamily.Monospace,
-                    fontSize = 10.sp,
-                    fontWeight = FontWeight.Bold,
-                    color = colors.violet,
-                ),
+                style = CFText.caption.bold().copy(color = colors.violet),
                 modifier = Modifier.weight(1f),
             )
             Text(
                 text = "stat",
-                style = TextStyle(
-                    fontFamily = FontFamily.Monospace,
-                    fontSize = 10.sp,
-                    color = colors.dim,
-                ),
+                style = CFText.caption.copy(color = colors.dim),
                 modifier = Modifier.weight(1f),
                 textAlign = TextAlign.Center,
             )
             Text(
                 text = "@$handle2",
-                style = TextStyle(
-                    fontFamily = FontFamily.Monospace,
-                    fontSize = 10.sp,
-                    fontWeight = FontWeight.Bold,
-                    color = colors.green,
-                ),
+                style = CFText.caption.bold().copy(color = colors.green),
                 modifier = Modifier.weight(1f),
                 textAlign = TextAlign.End,
             )
@@ -409,7 +377,7 @@ private fun HeadToHeadCard(
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(horizontal = 14.dp, vertical = 10.dp),
+                    .padding(horizontal = CFSpace.card, vertical = 10.dp),
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically,
             ) {
@@ -417,30 +385,19 @@ private fun HeadToHeadCard(
                     if (winner1) {
                         Text(
                             text = "▲ ",
-                            style = TextStyle(
-                                fontSize = 8.sp,
-                                color = colors.violet,
-                            ),
+                            style = CFText.nano.copy(color = colors.violet),
                         )
                     }
                     Text(
                         text = row.val1,
-                        style = TextStyle(
-                            fontFamily = FontFamily.Monospace,
-                            fontSize = 13.sp,
-                            fontWeight = if (winner1) FontWeight.Bold else FontWeight.Normal,
-                            color = if (winner1) colors.violet else colors.fg,
-                        ),
+                        style = (if (winner1) CFText.subtitle.bold() else CFText.subtitle.normal())
+                            .copy(color = if (winner1) colors.violet else colors.fg),
                     )
                 }
 
                 Text(
                     text = row.label,
-                    style = TextStyle(
-                        fontFamily = FontFamily.Monospace,
-                        fontSize = 10.sp,
-                        color = colors.dim,
-                    ),
+                    style = CFText.caption.copy(color = colors.dim),
                     modifier = Modifier.weight(1f),
                     textAlign = TextAlign.Center,
                 )
@@ -452,20 +409,13 @@ private fun HeadToHeadCard(
                 ) {
                     Text(
                         text = row.val2,
-                        style = TextStyle(
-                            fontFamily = FontFamily.Monospace,
-                            fontSize = 13.sp,
-                            fontWeight = if (winner2) FontWeight.Bold else FontWeight.Normal,
-                            color = if (winner2) colors.green else colors.fg,
-                        ),
+                        style = (if (winner2) CFText.subtitle.bold() else CFText.subtitle.normal())
+                            .copy(color = if (winner2) colors.green else colors.fg),
                     )
                     if (winner2) {
                         Text(
                             text = " ▲",
-                            style = TextStyle(
-                                fontSize = 8.sp,
-                                color = colors.green,
-                            ),
+                            style = CFText.nano.copy(color = colors.green),
                         )
                     }
                 }
@@ -475,7 +425,7 @@ private fun HeadToHeadCard(
                 HorizontalDivider(
                     color = colors.border,
                     thickness = 1.dp,
-                    modifier = Modifier.padding(horizontal = 14.dp),
+                    modifier = Modifier.padding(horizontal = CFSpace.card),
                 )
             }
         }

@@ -15,28 +15,22 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.text.TextStyle
-import androidx.compose.ui.text.font.FontFamily
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import androidx.compose.runtime.LaunchedEffect
 import com.codeforcesvisualizer.climb.MyClimbCard
 import com.codeforcesvisualizer.core.components.CalendarToast
 import kotlinx.coroutines.delay
 import com.codeforcesvisualizer.core.components.Chip
+import com.codeforcesvisualizer.core.components.SegmentedTabs
 import com.codeforcesvisualizer.core.components.CountdownTimer
 import com.codeforcesvisualizer.core.components.HeightSpacer
 import com.codeforcesvisualizer.core.platform.CalendarResult
@@ -46,6 +40,15 @@ import com.codeforcesvisualizer.core.theme.CFThemeColors
 import com.codeforcesvisualizer.core.utils.convertTimeStampToDateString
 import com.codeforcesvisualizer.core.utils.convertToHMS
 import com.codeforcesvisualizer.shared.domain.entity.Contest
+import com.codeforcesvisualizer.core.theme.CFText
+import com.codeforcesvisualizer.core.theme.bold
+import com.codeforcesvisualizer.core.theme.CFAlpha
+import com.codeforcesvisualizer.core.theme.CFShapes
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.unit.sp
+import com.codeforcesvisualizer.core.theme.CFSpace
+import com.codeforcesvisualizer.core.components.CFButton
 
 private enum class ContestTab { UPCOMING, PAST }
 
@@ -75,11 +78,16 @@ internal fun ContestList(
         LazyColumn(modifier = Modifier.fillMaxSize(), state = state) {
             // Tab bar
             item {
-                TabBar(
-                    selectedTab = selectedTab,
-                    upcomingCount = live.size + upcoming.size,
-                    pastCount = past.size,
-                    onTabSelected = { selectedTab = it },
+                SegmentedTabs(
+                    labels = listOf(
+                        "upcoming (${live.size + upcoming.size})",
+                        "past (${past.size})",
+                    ),
+                    selectedIndex = if (selectedTab == ContestTab.UPCOMING) 0 else 1,
+                    onSelect = { index ->
+                        selectedTab = if (index == 0) ContestTab.UPCOMING else ContestTab.PAST
+                    },
+                    modifier = Modifier.padding(horizontal = CFSpace.gutter, vertical = 8.dp),
                 )
             }
 
@@ -89,7 +97,7 @@ internal fun ContestList(
                     onOpenProfile = openProfile,
                     onOpenSettings = openSettings,
                     onOpenUpsolve = openUpsolve,
-                    modifier = Modifier.padding(horizontal = 16.dp, vertical = 6.dp),
+                    modifier = Modifier.padding(horizontal = CFSpace.gutter, vertical = 6.dp),
                 )
             }
 
@@ -98,7 +106,7 @@ internal fun ContestList(
                 item { SectionLabel(text = "live now") }
                 items(live, key = { it.id }) { contest ->
                     ContestListItem(
-                        modifier = Modifier.padding(horizontal = 16.dp, vertical = 4.dp),
+                        modifier = Modifier.padding(horizontal = CFSpace.gutter, vertical = 4.dp),
                         contest = contest,
                         isUpcoming = false,
                         onOpenContest = openContestDetails,
@@ -130,7 +138,7 @@ internal fun ContestList(
                 val remaining = upcoming.drop(1)
                 items(remaining, key = { it.id }) { contest ->
                     ContestListItem(
-                        modifier = Modifier.padding(horizontal = 16.dp, vertical = 4.dp),
+                        modifier = Modifier.padding(horizontal = CFSpace.gutter, vertical = 4.dp),
                         contest = contest,
                         isUpcoming = true,
                         onOpenContest = openContestDetails,
@@ -141,7 +149,7 @@ internal fun ContestList(
             if (selectedTab == ContestTab.PAST) {
                 items(past, key = { it.id }) { contest ->
                     ContestListItem(
-                        modifier = Modifier.padding(horizontal = 16.dp, vertical = 4.dp),
+                        modifier = Modifier.padding(horizontal = CFSpace.gutter, vertical = 4.dp),
                         contest = contest,
                         isUpcoming = false,
                         onOpenContest = openContestDetails,
@@ -170,73 +178,7 @@ internal fun ContestList(
     }
 }
 
-@Composable
-private fun TabBar(
-    selectedTab: ContestTab,
-    upcomingCount: Int,
-    pastCount: Int,
-    onTabSelected: (ContestTab) -> Unit,
-) {
-    val colors = CFThemeColors.current
-    val containerShape = RoundedCornerShape(10.dp)
 
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(horizontal = 16.dp, vertical = 8.dp)
-            .clip(containerShape)
-            .background(colors.surface)
-            .border(1.dp, colors.border, containerShape)
-            .padding(3.dp),
-        horizontalArrangement = Arrangement.SpaceEvenly,
-    ) {
-        TabButton(
-            text = "$ upcoming ($upcomingCount)",
-            isSelected = selectedTab == ContestTab.UPCOMING,
-            onClick = { onTabSelected(ContestTab.UPCOMING) },
-            modifier = Modifier.weight(1f),
-        )
-        TabButton(
-            text = "$ past ($pastCount)",
-            isSelected = selectedTab == ContestTab.PAST,
-            onClick = { onTabSelected(ContestTab.PAST) },
-            modifier = Modifier.weight(1f),
-        )
-    }
-}
-
-@Composable
-private fun TabButton(
-    text: String,
-    isSelected: Boolean,
-    onClick: () -> Unit,
-    modifier: Modifier = Modifier,
-) {
-    val colors = CFThemeColors.current
-    val shape = RoundedCornerShape(8.dp)
-
-    Box(
-        modifier = modifier
-            .clip(shape)
-            .then(
-                if (isSelected) Modifier.background(colors.surface2)
-                else Modifier
-            )
-            .clickable { onClick() }
-            .padding(vertical = 10.dp),
-        contentAlignment = Alignment.Center,
-    ) {
-        Text(
-            text = text,
-            style = TextStyle(
-                fontFamily = FontFamily.Monospace,
-                fontSize = 11.sp,
-                fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal,
-                color = if (isSelected) colors.fg else colors.dim,
-            ),
-        )
-    }
-}
 
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
@@ -246,15 +188,15 @@ private fun HeroContestCard(
     onAddToCalendar: () -> Unit,
 ) {
     val colors = CFThemeColors.current
-    val shape = RoundedCornerShape(12.dp)
+    val shape = CFShapes.card
     val gradient = Brush.linearGradient(
-        colors = listOf(colors.violet.copy(alpha = 0.12f), colors.surface),
+        colors = listOf(colors.violet.copy(alpha = CFAlpha.WASH), colors.surface),
     )
 
     Column(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(horizontal = 16.dp, vertical = 8.dp)
+            .padding(horizontal = CFSpace.gutter, vertical = 8.dp)
             .clip(shape)
             .background(gradient)
             .border(1.dp, colors.border, shape)
@@ -270,11 +212,7 @@ private fun HeroContestCard(
 
             Text(
                 text = contest.startTimeSeconds.convertTimeStampToDateString(),
-                style = TextStyle(
-                    fontFamily = FontFamily.Monospace,
-                    fontSize = 9.5.sp,
-                    color = colors.dim,
-                ),
+                style = CFText.micro.copy(color = colors.dim),
             )
         }
 
@@ -283,12 +221,7 @@ private fun HeroContestCard(
         // Contest name
         Text(
             text = contest.name,
-            style = TextStyle(
-                fontFamily = FontFamily.Monospace,
-                fontWeight = FontWeight.Bold,
-                fontSize = 18.sp,
-                color = colors.fg,
-            ),
+            style = CFText.heading.copy(color = colors.fg),
         )
 
         HeightSpacer(height = 4.dp)
@@ -296,11 +229,7 @@ private fun HeroContestCard(
         // Duration info
         Text(
             text = "duration: ${contest.durationSeconds.convertToHMS()}",
-            style = TextStyle(
-                fontFamily = FontFamily.Monospace,
-                fontSize = 10.sp,
-                color = colors.dim,
-            ),
+            style = CFText.caption.copy(color = colors.dim),
         )
 
         HeightSpacer(height = 16.dp)
@@ -329,13 +258,13 @@ private fun HeroContestCard(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.spacedBy(8.dp),
         ) {
-            ActionButton(
+            CFButton(
                 text = "open",
                 color = colors.violet,
                 modifier = Modifier.weight(1f),
                 onClick = { onOpenContest(contest.id) },
             )
-            ActionButton(
+            CFButton(
                 text = "calendar",
                 color = colors.amber,
                 modifier = Modifier.weight(1f),
@@ -345,46 +274,13 @@ private fun HeroContestCard(
     }
 }
 
-@Composable
-private fun ActionButton(
-    text: String,
-    color: Color,
-    modifier: Modifier = Modifier,
-    onClick: () -> Unit,
-) {
-    val shape = RoundedCornerShape(8.dp)
-    Box(
-        modifier = modifier
-            .clip(shape)
-            .background(color.copy(alpha = 0.15f))
-            .border(1.dp, color.copy(alpha = 0.3f), shape)
-            .clickable { onClick() }
-            .padding(vertical = 10.dp),
-        contentAlignment = Alignment.Center,
-    ) {
-        Text(
-            text = "$ $text",
-            style = TextStyle(
-                fontFamily = FontFamily.Monospace,
-                fontSize = 11.sp,
-                fontWeight = FontWeight.Bold,
-                color = color,
-            ),
-        )
-    }
-}
 
 @Composable
 private fun SectionLabel(text: String) {
     val colors = CFThemeColors.current
     Text(
         text = "// $text",
-        style = TextStyle(
-            fontFamily = FontFamily.Monospace,
-            fontSize = 10.sp,
-            letterSpacing = 0.08.sp,
-            color = colors.dim,
-        ),
+        style = CFText.caption.copy(color = colors.dim),
         modifier = Modifier.padding(start = 20.dp, end = 20.dp, top = 10.dp, bottom = 2.dp),
     )
 }

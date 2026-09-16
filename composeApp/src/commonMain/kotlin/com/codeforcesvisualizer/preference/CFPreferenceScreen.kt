@@ -9,7 +9,6 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.HorizontalDivider
@@ -18,23 +17,18 @@ import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
-import androidx.compose.ui.text.TextStyle
-import androidx.compose.ui.text.font.FontFamily
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import com.codeforcesvisualizer.core.EventLogger
 import com.codeforcesvisualizer.core.components.CFCard
+import com.codeforcesvisualizer.core.components.CFTextField
 import com.codeforcesvisualizer.core.components.HeightSpacer
 import com.codeforcesvisualizer.core.components.ScreenHeader
 import com.codeforcesvisualizer.core.data.UserSettingsRepository
@@ -50,6 +44,14 @@ import kotlinx.coroutines.launch
 import org.jetbrains.compose.ui.tooling.preview.Preview
 import org.koin.compose.koinInject
 import org.koin.compose.viewmodel.koinViewModel
+import com.codeforcesvisualizer.core.theme.CFText
+import com.codeforcesvisualizer.core.theme.bold
+import com.codeforcesvisualizer.core.theme.CFAlpha
+import com.codeforcesvisualizer.core.theme.CFShapes
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.unit.sp
+import com.codeforcesvisualizer.core.theme.CFSpace
 
 @Composable
 fun PreferenceScreen(
@@ -73,7 +75,7 @@ fun PreferenceScreen(
         modifier = modifier
             .fillMaxSize()
             .background(colors.bg)
-            .padding(horizontal = 18.dp),
+            .padding(horizontal = CFSpace.gutter),
     ) {
         item {
             ScreenHeader(
@@ -88,59 +90,24 @@ fun PreferenceScreen(
                 Column {
                     Text(
                         text = "codeforces handle",
-                        style = TextStyle(
-                            fontFamily = FontFamily.Monospace,
-                            fontSize = 11.sp,
-                            color = colors.dim,
-                        ),
+                        style = CFText.label.copy(color = colors.dim),
                     )
                     HeightSpacer(height = 8.dp)
-                    OutlinedTextField(
+                    CFTextField(
                         value = usernameInput,
                         onValueChange = { usernameInput = it },
                         modifier = Modifier.fillMaxWidth(),
-                        singleLine = true,
-                        placeholder = {
-                            Text(
-                                text = "enter handle...",
-                                style = TextStyle(
-                                    fontFamily = FontFamily.Monospace,
-                                    fontSize = 13.sp,
-                                    color = colors.dim.copy(alpha = 0.5f),
-                                ),
-                            )
+                        placeholder = "enter handle...",
+                        onImeAction = {
+                            keyboardController?.hide()
+                            scope.launch { userSettingsRepository.setUsername(usernameInput) }
                         },
-                        textStyle = TextStyle(
-                            fontFamily = FontFamily.Monospace,
-                            fontSize = 13.sp,
-                            color = colors.fg,
-                        ),
-                        colors = OutlinedTextFieldDefaults.colors(
-                            focusedContainerColor = colors.surface2,
-                            unfocusedContainerColor = colors.surface2,
-                            focusedBorderColor = colors.violet.copy(alpha = 0.5f),
-                            unfocusedBorderColor = colors.border,
-                            cursorColor = colors.violet,
-                        ),
-                        shape = RoundedCornerShape(8.dp),
-                        keyboardOptions = KeyboardOptions.Default.copy(imeAction = ImeAction.Done),
-                        keyboardActions = KeyboardActions(
-                            onDone = {
-                                keyboardController?.hide()
-                                scope.launch { userSettingsRepository.setUsername(usernameInput) }
-                            }
-                        ),
                     )
                     if (usernameInput != savedUsername && usernameInput.isNotBlank()) {
                         HeightSpacer(height = 8.dp)
                         Text(
                             text = "$ save",
-                            style = TextStyle(
-                                fontFamily = FontFamily.Monospace,
-                                fontSize = 11.sp,
-                                fontWeight = FontWeight.Bold,
-                                color = colors.violet,
-                            ),
+                            style = CFText.label.bold().copy(color = colors.violet),
                             modifier = Modifier
                                 .clickable {
                                     scope.launch { userSettingsRepository.setUsername(usernameInput) }
@@ -198,15 +165,11 @@ fun PreferenceScreen(
                         Row(
                             modifier = Modifier
                                 .fillMaxWidth()
-                                .padding(horizontal = 14.dp, vertical = 8.dp),
+                                .padding(horizontal = CFSpace.card, vertical = 8.dp),
                         ) {
                             Text(
                                 text = "store not found",
-                                style = TextStyle(
-                                    fontFamily = FontFamily.Monospace,
-                                    fontSize = 10.sp,
-                                    color = colors.red,
-                                ),
+                                style = CFText.caption.copy(color = colors.red),
                             )
                         }
                     }
@@ -246,22 +209,14 @@ fun PreferenceScreen(
                 Text(
                     text = "cfclimb v${rateAppHandler.versionName}",
                     modifier = Modifier.fillMaxWidth(),
-                    style = TextStyle(
-                        fontFamily = FontFamily.Monospace,
-                        fontSize = 10.sp,
-                        color = colors.dim,
-                    ),
+                    style = CFText.caption.copy(color = colors.dim),
                     textAlign = TextAlign.Center,
                 )
                 HeightSpacer(height = 4.dp)
                 Text(
                     text = "Unofficial. Not affiliated with Codeforces.",
                     modifier = Modifier.fillMaxWidth(),
-                    style = TextStyle(
-                        fontFamily = FontFamily.Monospace,
-                        fontSize = 10.sp,
-                        color = colors.dim,
-                    ),
+                    style = CFText.caption.copy(color = colors.dim),
                     textAlign = TextAlign.Center,
                 )
             }
@@ -287,26 +242,18 @@ fun PreferenceRow(
                 if (onClick != null) Modifier.clickable { onClick() }
                 else Modifier
             )
-            .padding(horizontal = 14.dp, vertical = 14.dp),
+            .padding(horizontal = CFSpace.card, vertical = 14.dp),
         horizontalArrangement = Arrangement.SpaceBetween,
         verticalAlignment = Alignment.CenterVertically,
     ) {
         Text(
             text = label,
-            style = TextStyle(
-                fontFamily = FontFamily.Monospace,
-                fontSize = 12.sp,
-                color = colors.fg,
-            ),
+            style = CFText.body.copy(color = colors.fg),
             modifier = Modifier.weight(1f, fill = false),
         )
         Text(
             text = value,
-            style = TextStyle(
-                fontFamily = FontFamily.Monospace,
-                fontSize = 12.sp,
-                color = if (isAction) colors.violet else colors.dim,
-            ),
+            style = CFText.body.copy(color = if (isAction) colors.violet else colors.dim),
             modifier = Modifier.padding(start = 12.dp),
         )
     }

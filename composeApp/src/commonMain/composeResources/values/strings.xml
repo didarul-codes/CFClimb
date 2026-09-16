@@ -4,7 +4,7 @@
     <string name="compare_users">Compare Users</string>
 
     <string name="results">Results</string>
-    <string name="contest_search_placeholder">Enter Contest name of type</string>
+    <string name="contest_search_placeholder">search contests by name or type...</string>
 
-    <string name="enter_handle_hint">Enter Handle</string>
+    <string name="enter_handle_hint">enter handle...</string>
 </resources>

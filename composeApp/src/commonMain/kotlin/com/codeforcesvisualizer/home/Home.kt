@@ -16,23 +16,18 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.windowInsetsPadding
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.text.TextStyle
-import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import androidx.navigation.NavDestination.Companion.hierarchy
 import androidx.navigation.NavGraph.Companion.findStartDestination
@@ -57,6 +52,10 @@ import com.codeforcesvisualizer.preference.ThemeManager
 import com.codeforcesvisualizer.shared.domain.entity.UiThemeMode
 import org.koin.compose.KoinContext
 import org.koin.compose.koinInject
+import com.codeforcesvisualizer.core.theme.CFText
+import com.codeforcesvisualizer.core.theme.CFShapes
+import androidx.compose.runtime.getValue
+import androidx.compose.ui.unit.sp
 
 /** Koin must already be started with `initKoin()` by the platform entry point. */
 @Composable
@@ -175,7 +174,7 @@ fun FloatingBottomNav(
         Color(0xFFFFFFFF).copy(alpha = 0.82f)
     }
 
-    val navBarShape = RoundedCornerShape(22.dp)
+    val navBarShape = CFShapes.pill
     val shadowElevation = if (isDarkTheme) 12.dp else 6.dp
 
     Box(
@@ -225,11 +224,7 @@ fun FloatingBottomNav(
                     )
                     Text(
                         text = screen.label,
-                        style = TextStyle(
-                            fontFamily = FontFamily.Monospace,
-                            fontSize = 9.sp,
-                            color = itemColor,
-                        ),
+                        style = CFText.micro.copy(color = itemColor),
                     )
                 }
             }

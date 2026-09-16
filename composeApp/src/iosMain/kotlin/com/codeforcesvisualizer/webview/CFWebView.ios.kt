@@ -2,12 +2,13 @@
 
 package com.codeforcesvisualizer.webview
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.LinearProgressIndicator
-import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -17,7 +18,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.interop.UIKitView
 import androidx.compose.ui.viewinterop.UIKitInteropProperties
 import androidx.compose.ui.viewinterop.UIKitView
-import com.codeforcesvisualizer.core.components.CFAppBar
+import com.codeforcesvisualizer.core.components.ScreenHeader
+import com.codeforcesvisualizer.core.theme.CFThemeColors
 import kotlinx.cinterop.ExperimentalForeignApi
 import kotlinx.cinterop.ObjCSignatureOverride
 import kotlinx.cinterop.readValue
@@ -46,18 +48,19 @@ actual fun CFWebViewScreen(
     var navigationDelegate = remember(safeLink) {
         CFWebViewNavigationDelegate { loading -> isLoading = loading }
     }
-    val title = "Codeforces"
+    val colors = CFThemeColors.current
 
-    Scaffold(
-        modifier = modifier,
-        topBar = {
-            CFAppBar(
-                title = title,
-                onNavigateBack = onNavigateBack
-            )
-        }
-    ) { innerPadding ->
-        Box(modifier = Modifier.padding(innerPadding)) {
+    Column(
+        modifier = modifier
+            .fillMaxSize()
+            .background(colors.bg),
+    ) {
+        ScreenHeader(
+            prompt = "codeforces.com",
+            title = "Codeforces",
+            onNavigateBack = onNavigateBack,
+        )
+        Box(modifier = Modifier.weight(1f)) {
             UIKitView(
                 modifier = Modifier.fillMaxSize(),
                 factory = {

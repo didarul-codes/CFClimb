@@ -6,25 +6,23 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.text.TextStyle
-import androidx.compose.ui.text.font.FontFamily
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import com.codeforcesvisualizer.core.theme.CFThemeColors
 import kotlinx.coroutines.delay
 import kotlinx.datetime.Clock
+import com.codeforcesvisualizer.core.theme.CFText
+import com.codeforcesvisualizer.core.theme.CFShapes
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.unit.sp
 
 @Composable
 fun CountdownTimer(
@@ -78,7 +76,7 @@ private fun CountdownSegment(
     modifier: Modifier = Modifier,
 ) {
     val colors = CFThemeColors.current
-    val shape = RoundedCornerShape(6.dp)
+    val shape = CFShapes.control
 
     Column(
         modifier = modifier
@@ -88,24 +86,12 @@ private fun CountdownSegment(
     ) {
         Text(
             text = value.toString().padStart(2, '0'),
-            style = TextStyle(
-                fontFamily = FontFamily.Monospace,
-                fontWeight = FontWeight.Bold,
-                fontSize = 24.sp,
-                color = colors.fg,
-                textAlign = TextAlign.Center,
-            ),
+            style = CFText.heading.copy(color = colors.fg, textAlign = TextAlign.Center),
         )
         HeightSpacer(height = 2.dp)
         Text(
             text = label,
-            style = TextStyle(
-                fontFamily = FontFamily.Monospace,
-                fontSize = 8.sp,
-                letterSpacing = 0.1.sp,
-                color = colors.dim,
-                textAlign = TextAlign.Center,
-            ),
+            style = CFText.nano.copy(color = colors.dim, textAlign = TextAlign.Center),
         )
     }
 }

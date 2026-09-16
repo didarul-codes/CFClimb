@@ -10,17 +10,12 @@ import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.text.TextStyle
-import androidx.compose.ui.text.font.FontFamily
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import com.codeforcesvisualizer.core.components.Chip
 import com.codeforcesvisualizer.core.components.HeightSpacer
 import com.codeforcesvisualizer.core.theme.CFThemeColors
@@ -29,6 +24,11 @@ import com.codeforcesvisualizer.core.utils.convertToHMS
 import com.codeforcesvisualizer.core.utils.formatTimeUntil
 import com.codeforcesvisualizer.shared.domain.entity.Contest
 import kotlinx.datetime.Clock
+import com.codeforcesvisualizer.core.theme.CFText
+import com.codeforcesvisualizer.core.theme.bold
+import com.codeforcesvisualizer.core.theme.CFShapes
+import androidx.compose.ui.unit.sp
+import com.codeforcesvisualizer.core.theme.CFSpace
 
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
@@ -41,7 +41,7 @@ internal fun ContestListItem(
     liveLabel: String? = null,
 ) {
     val colors = CFThemeColors.current
-    val shape = RoundedCornerShape(12.dp)
+    val shape = CFShapes.card
 
     Row(
         modifier = modifier
@@ -50,19 +50,14 @@ internal fun ContestListItem(
             .background(colors.surface)
             .border(width = 1.dp, color = colors.border, shape = shape)
             .clickable { onOpenContest(contest.id) }
-            .padding(horizontal = 14.dp, vertical = 12.dp),
+            .padding(horizontal = CFSpace.card, vertical = 12.dp),
         verticalAlignment = Alignment.Top,
     ) {
         // Left content
         Column(modifier = Modifier.weight(1f)) {
             Text(
                 text = contest.name,
-                style = TextStyle(
-                    fontFamily = FontFamily.Monospace,
-                    fontWeight = FontWeight.Bold,
-                    fontSize = 13.sp,
-                    color = colors.fg,
-                ),
+                style = CFText.subtitle.copy(color = colors.fg),
                 maxLines = 2,
             )
 
@@ -73,11 +68,7 @@ internal fun ContestListItem(
             val durationStr = contest.durationSeconds.convertToHMS()
             Text(
                 text = "$dateStr  ·  $durationStr",
-                style = TextStyle(
-                    fontFamily = FontFamily.Monospace,
-                    fontSize = 9.5.sp,
-                    color = colors.dim,
-                ),
+                style = CFText.micro.copy(color = colors.dim),
                 maxLines = 1,
             )
 
@@ -114,32 +105,19 @@ internal fun ContestListItem(
             if (liveLabel != null) {
                 Text(
                     text = liveLabel,
-                    style = TextStyle(
-                        fontFamily = FontFamily.Monospace,
-                        fontSize = 11.sp,
-                        fontWeight = FontWeight.Bold,
-                        color = colors.green,
-                    ),
+                    style = CFText.label.bold().copy(color = colors.green),
                 )
             } else if (isUpcoming) {
                 val timeUntil = formatTimeUntil(contest.startTimeSeconds)
                 Text(
                     text = "in $timeUntil",
-                    style = TextStyle(
-                        fontFamily = FontFamily.Monospace,
-                        fontSize = 11.sp,
-                        color = colors.violet,
-                    ),
+                    style = CFText.label.copy(color = colors.violet),
                 )
             } else {
                 // For past contests, show phase
                 Text(
                     text = contest.phase.lowercase(),
-                    style = TextStyle(
-                        fontFamily = FontFamily.Monospace,
-                        fontSize = 10.sp,
-                        color = colors.dim,
-                    ),
+                    style = CFText.caption.copy(color = colors.dim),
                 )
             }
         }

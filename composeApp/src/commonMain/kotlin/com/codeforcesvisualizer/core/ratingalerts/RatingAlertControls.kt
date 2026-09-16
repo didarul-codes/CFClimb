@@ -4,22 +4,22 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.text.TextStyle
-import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import com.codeforcesvisualizer.core.components.Chip
+import com.codeforcesvisualizer.core.components.SelectableChip
 import com.codeforcesvisualizer.core.components.HeightSpacer
 import com.codeforcesvisualizer.core.reminders.rememberNotificationPermissionRequester
 import com.codeforcesvisualizer.core.theme.CFThemeColors
 import kotlinx.coroutines.launch
 import org.koin.compose.koinInject
+import com.codeforcesvisualizer.core.theme.CFText
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.unit.sp
 
 /** Turns rating change alerts for the saved [handle] on or off, asking for notification permission first. */
 @Composable
@@ -36,10 +36,9 @@ fun RatingAlertToggle(
     val hasHandle = handle.isNotBlank()
 
     Column(modifier = modifier) {
-        Chip(
-            text = if (enabled) "✓ rating change alerts" else "rating change alerts",
-            color = if (enabled && hasHandle) colors.violet else colors.dim,
-            subtle = !enabled || !hasHandle,
+        SelectableChip(
+            text = "rating change alerts",
+            selected = enabled && hasHandle,
             onClick = if (!hasHandle) null else {
                 {
                     if (enabled) {
@@ -64,11 +63,7 @@ fun RatingAlertToggle(
             HeightSpacer(height = 6.dp)
             Text(
                 text = note,
-                style = TextStyle(
-                    fontFamily = FontFamily.Monospace,
-                    fontSize = 10.sp,
-                    color = if (notificationsBlocked) colors.amber else colors.dim,
-                ),
+                style = CFText.caption.copy(color = if (notificationsBlocked) colors.amber else colors.dim),
             )
         }
     }

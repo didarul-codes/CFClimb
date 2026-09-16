@@ -5,7 +5,6 @@ import androidx.compose.animation.ExperimentalAnimationApi
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.text.KeyboardActions
@@ -34,6 +33,8 @@ import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.unit.dp
 import org.jetbrains.compose.ui.tooling.preview.Preview
+import androidx.compose.foundation.layout.fillMaxSize
+import com.codeforcesvisualizer.core.theme.CFSpace
 
 @OptIn(ExperimentalComposeUiApi::class)
 @Composable
@@ -44,32 +45,25 @@ fun SearchBar(
     onSearchTextChanged: (String) -> Unit,
     onSearch: (() -> Unit)? = null,
     onClearText: () -> Unit,
-    onNavigateBack: () -> Unit,
     /** Off when the screen opens with a result already, so the keyboard doesn't cover it. */
     requestFocusOnStart: Boolean = true,
 ) {
     val focusRequester = remember { FocusRequester() }
     val keyboardController = LocalSoftwareKeyboardController.current
 
-    CFAppBar(
-        modifier = modifier.fillMaxWidth(),
-        title = "",
-        onNavigateBack = onNavigateBack,
-        actions = {
-            SearchBarInputField(
-                searchText = searchText,
-                placeholderText = placeholderText,
-                focusRequester = focusRequester,
-                keyboardController = keyboardController,
-                onSearchTextChanged = onSearchTextChanged,
-                onSearch = if (onSearch == null) null else {
-                    {
-                        onSearch.invoke()
-                    }
-                },
-                onClearText = onClearText,
-            )
-        }
+    SearchBarInputField(
+        modifier = modifier.fillMaxWidth().padding(horizontal = CFSpace.gutter),
+        searchText = searchText,
+        placeholderText = placeholderText,
+        focusRequester = focusRequester,
+        keyboardController = keyboardController,
+        onSearchTextChanged = onSearchTextChanged,
+        onSearch = if (onSearch == null) null else {
+            {
+                onSearch.invoke()
+            }
+        },
+        onClearText = onClearText,
     )
 
     LaunchedEffect(Unit) {
@@ -101,9 +95,8 @@ internal fun SearchBarInputField(
         }
     }
 
-    TextField(
+    CFTextField(
         modifier = modifier
-            .padding(vertical = 2.dp)
             .onFocusChanged { showClearButton = it.isFocused }
             .focusRequester(focusRequester),
         value = textFieldValue,
@@ -111,23 +104,13 @@ internal fun SearchBarInputField(
             textFieldValue = value
             onSearchTextChanged(value.text)
         },
-        placeholder = { Text(text = placeholderText) },
-        colors = TextFieldDefaults.colors(
-            focusedContainerColor = Color.Transparent,
-            unfocusedContainerColor = Color.Transparent,
-            disabledContainerColor = Color.Transparent,
-            errorContainerColor = Color.Transparent,
-            focusedIndicatorColor = Color.Transparent,
-            unfocusedIndicatorColor = Color.Transparent,
-            cursorColor = MaterialTheme.colorScheme.primary,
-            focusedTextColor = MaterialTheme.colorScheme.onSurface,
-            unfocusedTextColor = MaterialTheme.colorScheme.onSurface,
-            focusedPlaceholderColor = MaterialTheme.colorScheme.onSurfaceVariant,
-            unfocusedPlaceholderColor = MaterialTheme.colorScheme.onSurfaceVariant,
-            focusedTrailingIconColor = MaterialTheme.colorScheme.onSurfaceVariant,
-            unfocusedTrailingIconColor = MaterialTheme.colorScheme.onSurfaceVariant
-        ),
-        trailingIcon = {
+        placeholder = placeholderText,
+        imeAction = if (onSearch != null) ImeAction.Search else ImeAction.Done,
+        onImeAction = {
+            keyboardController?.hide()
+            onSearch?.invoke()
+        },
+        trailing = {
             SearchBarTrailingIcon(
                 visible = showClearButton,
                 onClearText = {
@@ -137,17 +120,6 @@ internal fun SearchBarInputField(
                 onSearch = onSearch
             )
         },
-        singleLine = true,
-        keyboardOptions = KeyboardOptions.Default.copy(imeAction = if (onSearch != null) ImeAction.Search else ImeAction.Done),
-        keyboardActions = KeyboardActions(
-            onSearch = {
-                keyboardController?.hide()
-                onSearch?.invoke()
-            },
-            onDone = {
-                keyboardController?.hide()
-            }
-        )
     )
 }
 
@@ -191,6 +163,5 @@ private fun Preview() {
     SearchBar(
         onSearchTextChanged = {},
         onClearText = { /*TODO*/ },
-        onNavigateBack = { /*TODO*/ }
     )
 }

@@ -16,15 +16,14 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.AnnotatedString
-import androidx.compose.ui.text.TextStyle
-import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.rememberTextMeasurer
 import androidx.compose.ui.text.drawText
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import com.codeforcesvisualizer.core.theme.CFThemeColors
 import kotlin.math.min
+import com.codeforcesvisualizer.core.theme.CFText
+import androidx.compose.ui.unit.sp
 
 @Immutable
 data class HeatmapCell(
@@ -99,11 +98,7 @@ fun SubmissionHeatmap(
         // Legend: "less" + 5 swatches + "more"
         val legendCellSize = 9.dp
         val legendGap = 3.dp
-        val legendStyle = TextStyle(
-            fontFamily = FontFamily.Monospace,
-            fontSize = 8.sp,
-            color = colors.dim,
-        )
+        val legendStyle = CFText.nano.copy(color = colors.dim)
 
         Row(
             verticalAlignment = Alignment.CenterVertically,

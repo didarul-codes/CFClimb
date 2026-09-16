@@ -12,18 +12,17 @@ import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.drawscope.Fill
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.text.AnnotatedString
-import androidx.compose.ui.text.TextStyle
-import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.rememberTextMeasurer
 import androidx.compose.ui.text.drawText
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import com.codeforcesvisualizer.core.theme.CFThemeColors
 import kotlin.math.PI
 import kotlin.math.cos
 import kotlin.math.sin
+import com.codeforcesvisualizer.core.theme.CFText
+import androidx.compose.ui.unit.sp
 
 @Immutable
 data class RadarSeries(
@@ -46,12 +45,7 @@ fun TagRadarChart(
         series.flatMap { it.values }.maxOrNull() ?: 1
     }
 
-    val labelStyle = TextStyle(
-        fontFamily = FontFamily.Monospace,
-        fontSize = 8.5.sp,
-        color = colors.dim,
-        textAlign = TextAlign.Center,
-    )
+    val labelStyle = CFText.micro.copy(color = colors.dim, textAlign = TextAlign.Center)
 
     if (axisCount < 3) return
 

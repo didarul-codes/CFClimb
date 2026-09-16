@@ -6,7 +6,6 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -15,11 +14,12 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
-import androidx.compose.ui.text.TextStyle
-import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import com.codeforcesvisualizer.core.theme.CFThemeColors
+import com.codeforcesvisualizer.core.theme.CFText
+import com.codeforcesvisualizer.core.theme.CFAlpha
+import com.codeforcesvisualizer.core.theme.CFShapes
+import androidx.compose.ui.unit.sp
 
 @Composable
 fun Chip(
@@ -30,10 +30,9 @@ fun Chip(
     icon: ImageVector? = null,
     onClick: (() -> Unit)? = null,
 ) {
-    val bgAlpha = if (subtle) 0x14 else 0x22
-    val backgroundColor = color.copy(alpha = bgAlpha / 255f)
-    val borderColor = color.copy(alpha = 0x33 / 255f)
-    val shape = RoundedCornerShape(4.dp)
+    val backgroundColor = color.copy(alpha = if (subtle) CFAlpha.FILL_SUBTLE else CFAlpha.FILL)
+    val borderColor = color.copy(alpha = CFAlpha.BORDER)
+    val shape = CFShapes.chip
 
     Row(
         modifier = modifier
@@ -58,12 +57,29 @@ fun Chip(
         }
         Text(
             text = text.lowercase(),
-            style = TextStyle(
-                fontFamily = FontFamily.Monospace,
-                fontSize = 9.5.sp,
-                letterSpacing = 0.04.sp,
-                color = color,
-            ),
+            style = CFText.micro.copy(color = color),
         )
     }
+}
+
+/**
+ * A chip that can be switched on and off. Selected chips take the accent colour and a
+ * tick, so "on" reads the same everywhere: filters, reminder lead times, alert toggles.
+ */
+@Composable
+fun SelectableChip(
+    text: String,
+    selected: Boolean,
+    modifier: Modifier = Modifier,
+    color: Color = CFThemeColors.current.violet,
+    onClick: (() -> Unit)?,
+) {
+    val colors = CFThemeColors.current
+    Chip(
+        text = if (selected) "\u2713 $text" else text,
+        modifier = modifier,
+        color = if (selected && onClick != null) color else colors.dim,
+        subtle = !selected || onClick == null,
+        onClick = onClick,
+    )
 }

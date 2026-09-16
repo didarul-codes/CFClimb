@@ -14,13 +14,11 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Text
 import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -28,15 +26,13 @@ import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.buildAnnotatedString
-import androidx.compose.ui.text.font.FontFamily
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import com.codeforcesvisualizer.core.components.CFLoadingIndicator
 import com.codeforcesvisualizer.core.components.Center
 import com.codeforcesvisualizer.core.components.Chip
+import com.codeforcesvisualizer.core.components.SelectableChip
 import com.codeforcesvisualizer.core.components.ErrorState
 import com.codeforcesvisualizer.core.components.HeightSpacer
 import com.codeforcesvisualizer.core.components.OfflineBanner
@@ -47,6 +43,12 @@ import com.codeforcesvisualizer.shared.data.config.BASE_URL
 import com.codeforcesvisualizer.shared.domain.stats.UpsolveProblem
 import com.codeforcesvisualizer.shared.domain.stats.UpsolveReason
 import org.koin.compose.viewmodel.koinViewModel
+import com.codeforcesvisualizer.core.theme.CFText
+import com.codeforcesvisualizer.core.theme.bold
+import com.codeforcesvisualizer.core.theme.CFShapes
+import androidx.compose.runtime.getValue
+import androidx.compose.ui.unit.sp
+import com.codeforcesvisualizer.core.theme.CFSpace
 
 /** Unsolved problems from the saved handle's rated rounds. */
 @Composable
@@ -65,25 +67,23 @@ fun UpsolveScreen(
             .fillMaxSize()
             .background(colors.bg),
     ) {
-        BackRow(onNavigateBack)
-        ScreenHeader(prompt = "upsolve", title = "Upsolve")
+        ScreenHeader(prompt = "upsolve", title = "Upsolve", onNavigateBack = onNavigateBack)
 
         when (val current = state) {
             UpsolveUiState.Checking -> Unit
             UpsolveUiState.NoHandle -> Center(modifier = Modifier.weight(1f)) {
-                Column(horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier.padding(horizontal = 24.dp)) {
+                Column(horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier.padding(horizontal = CFSpace.wideGutter)) {
                     MonoText(
                         text = "Save your Codeforces handle to build an upsolve queue from your rated rounds.",
                         color = colors.dim,
-                        size = 13,
+                        style = CFText.subtitle,
                         center = true,
                     )
                     HeightSpacer(height = 12.dp)
                     MonoText(
                         text = "$ set handle",
                         color = colors.violet,
-                        size = 12,
-                        bold = true,
+                        style = CFText.body.bold(),
                         modifier = Modifier
                             .clickable(role = Role.Button, onClick = onOpenSettings)
                             .padding(horizontal = 12.dp, vertical = 10.dp),
@@ -122,17 +122,17 @@ private fun ReadyContent(
             OfflineBanner(text = "offline · showing saved data", onRetry = onRefresh)
         }
         FlowRow(
-            modifier = Modifier.padding(horizontal = 16.dp, vertical = 4.dp),
+            modifier = Modifier.padding(horizontal = CFSpace.gutter, vertical = 4.dp),
             horizontalArrangement = Arrangement.spacedBy(8.dp),
             verticalArrangement = Arrangement.spacedBy(8.dp),
         ) {
-            FilterChip("all ${state.triedCount + state.notOpenedCount}", state.filter == UpsolveFilter.ALL) {
+            SelectableChip("all ${state.triedCount + state.notOpenedCount}", state.filter == UpsolveFilter.ALL) {
                 onSelectFilter(UpsolveFilter.ALL)
             }
-            FilterChip("tried ${state.triedCount}", state.filter == UpsolveFilter.TRIED) {
+            SelectableChip("tried ${state.triedCount}", state.filter == UpsolveFilter.TRIED) {
                 onSelectFilter(UpsolveFilter.TRIED)
             }
-            FilterChip("not opened ${state.notOpenedCount}", state.filter == UpsolveFilter.NOT_OPENED) {
+            SelectableChip("not opened ${state.notOpenedCount}", state.filter == UpsolveFilter.NOT_OPENED) {
                 onSelectFilter(UpsolveFilter.NOT_OPENED)
             }
         }
@@ -140,8 +140,8 @@ private fun ReadyContent(
             MonoText(
                 text = "Loading the problem list; problems you haven't opened will appear when it's saved.",
                 color = colors.dim,
-                size = 10,
-                modifier = Modifier.padding(horizontal = 18.dp, vertical = 4.dp),
+                style = CFText.caption,
+                modifier = Modifier.padding(horizontal = CFSpace.gutter, vertical = 4.dp),
             )
         }
 
@@ -165,9 +165,9 @@ private fun ReadyContent(
                         MonoText(
                             text = emptyMessage,
                             color = colors.dim,
-                            size = 12,
+                            style = CFText.body,
                             center = true,
-                            modifier = Modifier.fillMaxWidth().padding(horizontal = 24.dp, vertical = 32.dp),
+                            modifier = Modifier.fillMaxWidth().padding(horizontal = CFSpace.wideGutter, vertical = 32.dp),
                         )
                     }
                 } else {
@@ -184,20 +184,20 @@ private fun ReadyContent(
 @Composable
 private fun UpsolveRow(item: UpsolveProblem, onOpenProblem: (String) -> Unit) {
     val colors = CFThemeColors.current
-    val shape = RoundedCornerShape(12.dp)
+    val shape = CFShapes.card
     val problem = item.problem
 
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(horizontal = 16.dp, vertical = 4.dp)
+            .padding(horizontal = CFSpace.gutter, vertical = 4.dp)
             .clip(shape)
             .background(colors.surface)
             .border(width = 1.dp, color = colors.border, shape = shape)
             .clickable(role = Role.Button, onClickLabel = "Open problem") {
                 onOpenProblem("$BASE_URL/contest/${problem.contestId}/problem/${problem.index}")
             }
-            .padding(horizontal = 14.dp, vertical = 12.dp),
+            .padding(horizontal = CFSpace.card, vertical = 12.dp),
         verticalAlignment = Alignment.Top,
     ) {
         Column(modifier = Modifier.weight(1f)) {
@@ -206,11 +206,11 @@ private fun UpsolveRow(item: UpsolveProblem, onOpenProblem: (String) -> Unit) {
                     withStyle(SpanStyle(color = colors.violet)) { append(problem.label) }
                     withStyle(SpanStyle(color = colors.fg)) { append("  ${problem.name}") }
                 },
-                style = TextStyle(fontFamily = FontFamily.Monospace, fontWeight = FontWeight.Bold, fontSize = 13.sp),
+                style = CFText.subtitle,
                 maxLines = 2,
             )
             HeightSpacer(height = 3.dp)
-            MonoText(text = item.contestName, color = colors.dim, size = 10)
+            MonoText(text = item.contestName, color = colors.dim, style = CFText.caption)
             if (problem.tags.isNotEmpty()) {
                 HeightSpacer(height = 6.dp)
                 FlowRow(
@@ -223,7 +223,7 @@ private fun UpsolveRow(item: UpsolveProblem, onOpenProblem: (String) -> Unit) {
         }
         Column(horizontalAlignment = Alignment.End, modifier = Modifier.padding(start = 8.dp)) {
             problem.rating?.let { rating ->
-                MonoText(text = rating.toString(), color = rankColorFor(rating), size = 12, bold = true)
+                MonoText(text = rating.toString(), color = rankColorFor(rating), style = CFText.body.bold())
             }
             MonoText(
                 text = when {
@@ -233,57 +233,24 @@ private fun UpsolveRow(item: UpsolveProblem, onOpenProblem: (String) -> Unit) {
                     else -> "tried"
                 },
                 color = if (item.reason == UpsolveReason.TRIED) colors.amber else colors.dim,
-                size = 10,
+                style = CFText.caption,
             )
         }
     }
 }
 
 @Composable
-private fun FilterChip(text: String, selected: Boolean, onClick: () -> Unit) {
-    val colors = CFThemeColors.current
-    Chip(
-        text = if (selected) "✓ $text" else text,
-        color = if (selected) colors.violet else colors.dim,
-        subtle = !selected,
-        onClick = onClick,
-    )
-}
-
-@Composable
-private fun BackRow(onNavigateBack: () -> Unit) {
-    val colors = CFThemeColors.current
-    Text(
-        text = buildAnnotatedString {
-            withStyle(SpanStyle(color = colors.violet)) { append("← ") }
-            withStyle(SpanStyle(color = colors.fg)) { append("cd ..") }
-        },
-        style = TextStyle(fontFamily = FontFamily.Monospace, fontSize = 13.sp, fontWeight = FontWeight.Bold),
-        modifier = Modifier
-            .padding(start = 18.dp, top = 12.dp)
-            .clickable(role = Role.Button, onClickLabel = "Back", onClick = onNavigateBack)
-            .padding(vertical = 4.dp),
-    )
-}
-
-@Composable
 private fun MonoText(
     text: String,
     color: androidx.compose.ui.graphics.Color,
-    size: Int,
     modifier: Modifier = Modifier,
-    bold: Boolean = false,
+    style: TextStyle = CFText.body,
     center: Boolean = false,
 ) {
     Text(
         text = text,
         modifier = modifier,
         textAlign = if (center) TextAlign.Center else null,
-        style = TextStyle(
-            fontFamily = FontFamily.Monospace,
-            fontSize = size.sp,
-            fontWeight = if (bold) FontWeight.Bold else FontWeight.Normal,
-            color = color,
-        ),
+        style = style.copy(color = color),
     )
 }

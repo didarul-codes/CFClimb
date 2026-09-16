@@ -1,7 +1,6 @@
 package com.codeforcesvisualizer.navigation
 
 import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import com.codeforcesvisualizer.core.data.UserSettingsRepository
 import org.koin.compose.koinInject
@@ -15,6 +14,7 @@ import androidx.savedstate.read
 import com.codeforcesvisualizer.profile.ProfileSearchScreen
 import com.codeforcesvisualizer.shared.data.config.BASE_URL
 import com.codeforcesvisualizer.webview.CFWebViewScreen
+import androidx.compose.runtime.getValue
 
 internal fun NavGraphBuilder.addProfileTopLevel(
     navController: NavController

@@ -11,20 +11,14 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.text.TextStyle
-import androidx.compose.ui.text.font.FontFamily
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import com.codeforcesvisualizer.core.components.HeightSpacer
-import com.codeforcesvisualizer.core.components.WidthSpacer
 import com.codeforcesvisualizer.core.theme.CFThemeColors
 import com.codeforcesvisualizer.core.theme.DarkBg
 import com.codeforcesvisualizer.core.theme.DarkBorder
@@ -34,6 +28,10 @@ import com.codeforcesvisualizer.core.theme.LightBorder
 import com.codeforcesvisualizer.core.theme.LightSurface
 import com.codeforcesvisualizer.core.theme.Violet
 import com.codeforcesvisualizer.shared.domain.entity.UiThemeMode
+import com.codeforcesvisualizer.core.theme.CFText
+import com.codeforcesvisualizer.core.theme.bold
+import com.codeforcesvisualizer.core.theme.CFShapes
+import androidx.compose.ui.unit.sp
 
 @Composable
 fun AppearanceSection(
@@ -89,7 +87,7 @@ private fun ThemePreviewButton(
 ) {
     val colors = CFThemeColors.current
     val borderColor = if (isSelected) colors.violet else colors.border
-    val shape = RoundedCornerShape(10.dp)
+    val shape = CFShapes.control
 
     Column(
         modifier = modifier
@@ -105,9 +103,9 @@ private fun ThemePreviewButton(
             modifier = Modifier
                 .fillMaxWidth()
                 .height(48.dp)
-                .clip(RoundedCornerShape(6.dp))
+                .clip(CFShapes.chip)
                 .background(previewBg)
-                .border(1.dp, previewBorder, RoundedCornerShape(6.dp))
+                .border(1.dp, previewBorder, CFShapes.chip)
                 .padding(8.dp),
         ) {
             Column(verticalArrangement = Arrangement.SpaceBetween) {
@@ -115,7 +113,7 @@ private fun ThemePreviewButton(
                     modifier = Modifier
                         .width(40.dp)
                         .height(4.dp)
-                        .clip(RoundedCornerShape(2.dp))
+                        .clip(CFShapes.bar)
                         .background(Violet)
                 )
                 HeightSpacer(height = 4.dp)
@@ -123,7 +121,7 @@ private fun ThemePreviewButton(
                     modifier = Modifier
                         .width(28.dp)
                         .height(4.dp)
-                        .clip(RoundedCornerShape(2.dp))
+                        .clip(CFShapes.bar)
                         .background(previewSurface)
                 )
                 HeightSpacer(height = 4.dp)
@@ -131,7 +129,7 @@ private fun ThemePreviewButton(
                     modifier = Modifier
                         .width(34.dp)
                         .height(4.dp)
-                        .clip(RoundedCornerShape(2.dp))
+                        .clip(CFShapes.bar)
                         .background(previewSurface)
                 )
             }
@@ -141,12 +139,8 @@ private fun ThemePreviewButton(
 
         Text(
             text = label,
-            style = TextStyle(
-                fontFamily = FontFamily.Monospace,
-                fontSize = 11.sp,
-                fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal,
-                color = if (isSelected) colors.violet else colors.dim,
-            ),
+            style = (if (isSelected) CFText.label.bold() else CFText.label)
+                .copy(color = if (isSelected) colors.violet else colors.dim),
         )
     }
 }
