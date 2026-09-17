@@ -13,3 +13,14 @@ screenshots/
 keys/
 *.xcuserstate
 composeApp/release
+
+fastlane/metadata/
+fastlane/.env
+fastlane/Appfile
+
+ROADMAP.md
+
+# Release signing and store credentials
+keystore.properties
+*.p8
+build/ios/

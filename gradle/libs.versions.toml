@@ -44,8 +44,8 @@ material = "1.13.0"
 material3 = "1.4.0"
 minSdk = "23"
 runner = "1.5.2"
-versionCode = "9"
-versionName = "3.0.0"
+versionCode = "10"
+versionName = "4.0.0"
 
 [libraries]
 androidx-activity-compose = { module = "androidx.activity:activity-compose", version.ref = "composeActivity" }
