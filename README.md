@@ -51,20 +51,19 @@ and widget extension).
 
 Open `iosApp/iosApp.xcodeproj` in Xcode to run the iOS app.
 
-## Roadmap
-
-See [ROADMAP.md](ROADMAP.md) for what is done and what comes next.
-
 ## Screenshots
 
-These are from an earlier version and will be replaced.
+Captured on a Pixel 10 Pro.
 
 <p align="center">
-  <img src="https://user-images.githubusercontent.com/27812028/162456852-72d8871e-f71f-4ed2-bfa9-d5cca7257aaf.png" width="220" height="400">
-  <img src="https://user-images.githubusercontent.com/27812028/162458461-1965b54c-cf98-4a49-940e-b9ff01acdab2.png" width="220" height="400">
-  <img src="https://user-images.githubusercontent.com/27812028/162458749-d94fe820-95e4-4382-b584-cf1087d17f4b.png" width="220" height="400">
-  <img src="https://user-images.githubusercontent.com/27812028/162458771-deae3350-a413-49b1-bc84-12afce9da048.png" width="220" height="400">
-  <img src="https://user-images.githubusercontent.com/27812028/162458778-4644542d-66cd-4804-b84b-c9f52d2649aa.png" width="220" height="400">
+  <img src="docs/images/contests.png" width="240" alt="Contest list with the my climb card and a countdown to the next round">
+  <img src="docs/images/upsolve.png" width="240" alt="Upsolve queue of unsolved problems from rated rounds">
+  <img src="docs/images/contest-details.png" width="240" alt="Contest details with countdown, calendar and reminder">
+</p>
+<p align="center">
+  <img src="docs/images/profile.png" width="240" alt="Profile with solved count, acceptance rate and rating history">
+  <img src="docs/images/profile-charts.png" width="240" alt="Solved problems by tag and by difficulty">
+  <img src="docs/images/settings.png" width="240" alt="Settings: handle, reminders, appearance">
 </p>
 
 ## Download

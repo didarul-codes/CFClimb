@@ -24,3 +24,4 @@ ROADMAP.md
 keystore.properties
 *.p8
 build/ios/
+fastlane/apple-review-reply.md
