@@ -68,4 +68,5 @@ Captured on a Pixel 10 Pro.
 
 ## Download
 
-[Google Play](https://play.google.com/store/apps/details?id=com.codeforcesvisualizer)
+- [App Store](https://apps.apple.com/us/app/cfclimb-codeforces-trainer/id6775346654)
+- [Google Play](https://play.google.com/store/apps/details?id=com.codeforcesvisualizer)
