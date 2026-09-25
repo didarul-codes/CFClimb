@@ -3,8 +3,7 @@
 **CFClimb – Codeforces Trainer** for Android and iOS. It follows the weekly cycle of a competitive
 programmer: get reminded, compete, see the result, and look back at your progress.
 
-Unofficial. Not affiliated with Codeforces. Data comes from the public
-[Codeforces API](https://codeforces.com/apiHelp).
+Unofficial. Not affiliated with Codeforces.
 
 ## Features
 
